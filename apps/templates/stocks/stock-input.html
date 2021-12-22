@@ -1,0 +1,247 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Add items {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}
+<style>
+  .st-result-card{
+    width: 100%;
+    transition: .5s;
+    box-shadow: 0 8px 8px 0 rgba(0,0,0,0.25);
+    border-radius: 7px;
+    padding: 15px 15px;
+    margin: auto;
+    z-index: 10;
+    /* position: absolute; */
+  }
+  .not-visible{
+    display: none;
+  }
+  a:hover {
+       cursor: pointer;
+       background-color:  #fff9f7 ;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+  <div class="row my-3">
+    
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header pb-0">
+          <div class="row">
+            <div class="col-lg-6 col-7">
+              <h6>Insert</h6>
+              <p class="text-sm">New stock info</p>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-3">
+          <div class="row">
+
+            {% if status == 'success' %}
+                {% if msg %}
+                <div class="alert alert-success text-white" role="alert">
+                  <strong>Success!</strong> {{ msg }}
+                </div>
+                {% endif %}
+              {% endif %}
+
+              {% if status == 'error' %}
+                {% if msg %}
+                <div class="alert alert-danger text-white" role="alert">
+                  <strong>Error!</strong> {{ msg }}
+                </div>
+                {% endif %}
+              {% endif %}
+
+                <form action = "" method = "POST">
+                  {% csrf_token %}
+                  <div class="form-group">
+                    <label for="exchange-name">Exchange Name</label>
+                    <select class="form-control" name="exchange-name" id="exchange-name">
+                      <option></option>
+                      <option>NSE</option>
+                      <option>BSE</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="stock-code">Stock Code</label>
+                    <input type="text" class="form-control" name="stock-code" id="stock-code" placeholder="SBI, RELIANCE">
+                    <div id="st-result" class="st-result-card not-visible"></div>
+                  </div>
+                  <div class="form-group">
+                    <label for="stock-name">Stock Name</label>
+                    <input type="text" class="form-control" name="stock-name" id="stock-name">
+                  </div>
+                  <div class="form-group">
+                    <label for="lt-price">Last Traded Price</label>
+                    <input type="text" class="form-control" name="lt-price" id="lt-price">
+                  </div>
+                  <div class="form-group">
+                    <label for="buy-price">Buy Price</label>
+                    <input type="number" class="form-control" name="buy-price" id="buy-price">
+                  </div>
+                  <div class="form-group">
+                    <label for="target-price">Target Price</label>
+                    <input type="number" class="form-control" name="target-price" id="target-price">
+                  </div>
+                  <div class="form-group">
+                    <label for="stoploss-price">Stoploss Price</label>
+                    <input type="number" class="form-control" name="stoploss-price" id="stoploss-price">
+                  </div>
+                  <div class="form-group">
+                    <label for="date">Date</label>
+                    <input type="date" class="form-control" name="date" id="date">
+                  </div>
+                  <button class="btn btn-primary" type="submit" >Submit</button>
+                </form>
+           
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+
+</div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+
+  <script>
+    var win = navigator.platform.indexOf('Win') > -1;
+    if (win && document.querySelector('#sidenav-scrollbar')) {
+      var options = {
+        damping: '0.5'
+      }
+      Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
+    }
+  </script>
+
+  <script>
+    const exchange = document.getElementById('exchange-name')
+    const stock_code = document.getElementById('stock-code')
+    const stock_name = document.getElementById('stock-name')
+    const stock_resbox = document.getElementById('st-result')
+    const csrf_token = document.getElementsByName('csrfmiddlewaretoken')[0].value
+    const buy_price = document.getElementById('buy-price')
+    const lt_price = document.getElementById('lt-price')
+
+    stock_code.addEventListener('keyup', e=>{
+
+      exch = exchange.value.toUpperCase();
+
+      if(exch == 'NSE'){
+        nseGetStockList(csrf_token, e.target.value, exch)
+      }
+      else if(exch == 'BSE'){
+        bseGetStockList(csrf_token, e.target.value, exch)
+      }
+
+    })
+
+    function nseGetStockList(csrf_token, que, exchange){
+      exchange = exchange.toUpperCase();
+      var postData = "que="+que+"&exchange="+exchange;
+      var request = new XMLHttpRequest();
+      request.open("POST", '{% url "nse-search" %}');
+      request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+      request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+      request.onreadystatechange = function() {
+          if(this.readyState === 4 && this.status === 200) {
+            if(stock_resbox.classList.contains('not-visible')){
+              stock_resbox.classList.remove('not-visible')
+            }
+              const obj1 = JSON.parse(this.responseText)
+              var length1 = obj1.length
+              stock_resbox.innerHTML = '';
+              for (var i=0; i < length1; i++) {   
+                var val1 = obj1[i]
+                stock_resbox.innerHTML += "<div><a onclick='populate_result(this)' data-name='"+val1.symbol_info+"' data-code='"+val1.symbol+"'>"+val1.symbol_info+" ("+val1.symbol+")</span></a></div>"
+              }
+          }
+      };
+      request.send(postData);
+    }
+
+    function populate_result(data) {
+      var name = data.dataset.name
+      var code = data.dataset.code
+      stock_code.value = code
+      stock_name.value = name
+      stock_resbox.classList.add('not-visible')
+    }
+
+    lt_price.addEventListener('click', e=>{
+
+      if(exchange.value == 'NSE'){
+        var que1 = stock_code.value
+        var postData1 = "que="+que1;
+        var request = new XMLHttpRequest();
+        request.open("POST", '{% url "nse-price" %}');
+        request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+        request.onreadystatechange = function() {
+            if(this.readyState === 4 && this.status === 200) {
+                var obj2 = JSON.parse(this.responseText)
+                lt_price.value = obj2['price']
+            }
+        };
+        request.send(postData1);
+      }
+      else if(exchange.value == 'BSE'){
+        var que1 = stock_code.value
+        var postData1 = "que="+que1;
+        var request = new XMLHttpRequest();
+        request.open("POST", '{% url "bse-price" %}');
+        request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+        request.onreadystatechange = function() {
+            if(this.readyState === 4 && this.status === 200) {
+                var obj2 = JSON.parse(this.responseText)
+                lt_price.value = obj2['price']
+            }
+        };
+        request.send(postData1);
+      }
+
+    })
+
+    function bseGetStockList(csrf_token, que, exchange){
+      exchange = exchange.toUpperCase();
+      var postData = "que="+que+"&exchange="+exchange;
+      var request = new XMLHttpRequest();
+      request.open("POST", '{% url "bse-search" %}');
+      request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+      request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+      request.onreadystatechange = function() {
+          if(this.readyState === 4 && this.status === 200) {
+            if(stock_resbox.classList.contains('not-visible')){
+              stock_resbox.classList.remove('not-visible')
+            }
+              const obj1 = JSON.parse(this.responseText)
+              var length1 = obj1.length
+              // console.log(obj1)
+              stock_resbox.innerHTML = '';
+              for (var i=0; i < length1; i++) {   
+                var val1 = obj1[i]
+                // console.log(val1)
+                stock_resbox.innerHTML += "<div><a onclick='populate_result(this)' data-name='"+val1[0]+"' data-code='"+val1[2]+"'>"+val1[0]+" ("+val1[2]+")</span></a></div>"
+              }
+          }
+      };
+      request.send(postData);
+    }
+
+  </script>
+
+{% endblock javascripts %}

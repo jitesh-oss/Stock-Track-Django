@@ -1,0 +1,341 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Dashboard {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}
+<style>
+
+  .slidecontainer {
+    width: 100%;
+  }
+
+
+  input[type=range]::-moz-range-thumb {
+    background-color: rgb(124, 124, 124);
+  }
+
+  .slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 15px;
+    border-radius: 5px;
+    /* background: #d3d3d3; */
+    background: linear-gradient(to right,  rgba(255, 0, 0, 0.5) 50%, rgba(0, 128, 0, 0.5) 50%);
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+  }
+
+  .slider:hover {
+    opacity: 1;
+  }
+
+  .slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #04AA6D;
+    cursor: pointer;
+  }
+
+  .slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    background: #04AA6D;
+    cursor: pointer;
+  }
+
+  .ltp-range{
+    color:  #17c1e8;
+  }
+
+  .target-range{
+
+  }
+
+  .stoploss-range{
+
+  }
+
+  .buy-range{
+    
+  }
+ 
+  .btn-refresh{
+    font-size: 12px;
+    font-weight: 400;
+    position: absolute;
+    z-index: 10;
+    top: 16px;
+    right: 16px;
+    display: block;
+    padding: 4px 8px;
+    cursor: pointer;
+    color: #fff;
+    border: 0;
+    border-radius: 4px;
+    background-color: transparent;
+    background-image: linear-gradient(310deg,#141727,#3a416f);
+  }
+  </style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+    <div class="container-fluid py-4">
+      
+      <div class="card card-frame">
+        <div class="card-body text-capitalize text-center">
+          <h5>Stock Track</h5>
+        </div>
+      </div>
+      
+      <div class="row mt-4">
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-7">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Stocks</p>
+                    <h5 class="font-weight-bolder">{{ data.total }}</h5>
+                    <!-- <span class="text-success text-sm font-weight-bolder">+ $4,000</span> -->
+                    <!-- <span class="text-sm">more</span> -->
+                  </div>
+                </div>
+                <div class="col-5 text-end my-auto">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-world text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-7">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">In Profit</p>
+                    <h5 class="font-weight-bolder">{{ data.profit }}</h5>
+                    <!-- <span class="text-success text-sm font-weight-bolder">+ 5,3%</span> -->
+                  </div>
+                </div>
+                <div class="col-5 text-end my-auto">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-fat-add text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-7">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">In Loss</p>
+                    <h5 class="font-weight-bolder">{{ data.loss }}</h5>
+                    <!-- <span class="text-success text-sm font-weight-bolder">+ 94</span> -->
+                    <!-- <span class="text-sm">last week</span> -->
+                  </div>
+                </div>
+                <div class="col-5 text-end my-auto">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-fat-delete text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-xl-3 col-sm-6">
+          <div class="card">
+            <div class="card-body p-3">
+              <div class="row">
+                <div class="col-7">
+                  <div class="numbers">
+                    <p class="text-sm mb-0 text-capitalize font-weight-bold">Attention</p>
+                    <h5 class="font-weight-bolder">{{ data.attention }}</h5>
+                    <!-- <span class="text-success text-sm font-weight-bolder">+ 5.3%</span> -->
+                  </div>
+                </div>
+                <div class="col-5 text-end my-auto">
+                  <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                    <i class="ni ni-time-alarm text-lg opacity-10" aria-hidden="true"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <hr>
+
+      {% include "includes/footer.html" %}
+
+    </div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+
+<script>
+  // var slider = document.getElementById("myRange");
+  // var output = document.getElementById("demo");
+  // output.innerHTML = slider.value;
+  
+  // slider.oninput = function() {
+  //   output.innerHTML = this.value;
+  // }
+</script>
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', (event) => {
+    fetchTable()
+  });
+  
+  function fetchTable(){
+    var table = document.getElementById('stock_list');
+    var request = new XMLHttpRequest();
+    request.open("POST", '{% url "stocks-all" %}');
+    request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+    request.onreadystatechange = function() {
+        if(this.readyState === 4 && this.status === 200) {
+            var obj2 = JSON.parse(this.responseText)
+            var length1 = obj2.result.length
+            for (var i=0; i < length1; i++) {
+
+              const last_up1 = new Date(obj2.result[i].fields.last_updated);
+              var lu_date = last_up1.getDate()+'-'+(last_up1.getMonth()+1)+'-'+last_up1.getFullYear()
+              var lu_time = last_up1.getHours() + ":" + last_up1.getMinutes() + ":" + last_up1.getSeconds();
+              const bought_on1 = new Date(obj2.result[i].fields.bought_on);
+
+              position = findPositionStatus(obj2.result[i].fields.st_ltp, obj2.result[i].fields.st_buyprice, obj2.result[i].fields.st_stoploss, obj2.result[i].fields.st_targetprice)
+              var proloss = position.prolos
+              var proloss_css = position.prolos_css
+
+              var final_range = findRange(obj2.result[i].fields.st_ltp, obj2.result[i].fields.st_buyprice, obj2.result[i].fields.st_stoploss, obj2.result[i].fields.st_targetprice)
+
+              var row = table.insertRow(0);
+              var cell1 = row.insertCell(0);
+              var cell2 = row.insertCell(1);
+              var cell3 = row.insertCell(2);
+              cell1.innerHTML = `
+                <div class="d-flex px-2 py-1">
+                <div class="d-flex flex-column justify-content-center">
+                <h6 class="mb-0 text-sm">`+obj2.result[i].fields.st_name+`</h6>
+                <div>`+obj2.result[i].fields.st_code+` (`+obj2.result[i].fields.exchange_name+`)</div>
+                <span class="text-xs font-weight-bold"> `+bought_on1.toDateString()+` </span>
+                </div>
+                </div>
+                `;
+              cell2.innerHTML = `
+                <span class="ltp-range text-xs font-weight-bold"> LTP: `+obj2.result[i].fields.st_ltp+` </span>
+                <div class="slidecontainer">
+                  <input type="range" min="1" max="200" value="`+final_range+`" class="slider" id="myRange" disabled>
+                </div>
+                <div class="row">
+                  <div class="col-6 col-md-4 col-sm"><span class="stoploss-range text-xs font-weight-bold"> `+obj2.result[i].fields.st_stoploss+` </span></div>
+                  <div class="col-6 col-md-4 col-sm text-center"><span class="buy-range text-xs font-weight-bold"> `+obj2.result[i].fields.st_buyprice+` </span></div>
+                  <div class="col-6 col-md-4 col-sm text-end"><span class="target-range text-xs font-weight-bold"> `+obj2.result[i].fields.st_targetprice+` </span></div>
+                </div>
+                `;
+              cell3.innerHTML = `
+                <div class="align-middle text-center">
+                <h6><span class="badge `+proloss_css+` text-xxs"> `+proloss+` </span></h6>
+                <span class="text-xs font-weight-bold"> `+lu_date+` `+lu_time+` </span>
+                </div>
+              `;
+            }
+            // console.log(obj2.result)
+        }
+    };
+    request.send();
+  }
+
+  function findPositionStatus(ltp, buy, stoploss, target){
+    var prolos = ''
+    if(ltp > buy){
+      if(ltp >= target){
+        prolos = 'Target Hit'
+        prolos_css = 'bg-gradient-success'
+      }
+      else{
+        prolos = 'Profit'
+        prolos_css = 'bg-gradient-success'
+      }
+    }
+    else if(ltp < buy){
+      if(ltp <= stoploss){
+        prolos = 'StopLoss Hit'
+        prolos_css = 'bg-gradient-danger'
+      }
+      else{
+        prolos = 'Loss'
+        prolos_css = 'bg-gradient-danger'
+      }
+    }
+    else{
+      prolos = 'Neutral'
+      prolos_css = 'bg-gradient-primary'
+    }
+    return {'prolos':prolos, 'prolos_css':prolos_css}
+  }
+
+  function findRange(ltp, buy, stoploss, target){
+    if(ltp > buy){
+      var bigN1 = target - buy
+      var smallN1 = ltp - buy
+      final_range1 = 100 + ((smallN1*100)/bigN1)
+    }
+    else if(ltp < buy){
+      var bigN = buy - stoploss
+      var smallN = buy - ltp
+      final_range1 = 100 - ((smallN*100)/bigN)
+    }
+    else if(ltp == buy){
+      final_range1 = 100
+    }
+    return final_range1
+  }
+
+  function refreshPrice(){
+    var table = document.getElementById('stock_list');
+    var request = new XMLHttpRequest();
+    request.open("POST", '{% url "refresh-price" %}');
+    request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+    request.onreadystatechange = function() {
+        if(this.readyState === 4 && this.status === 200) {
+            var obj2 = JSON.parse(this.responseText)
+            // console.log(obj2)
+
+            while(table.hasChildNodes()){
+              table.removeChild(table.firstChild);
+            }
+            fetchTable()
+
+        }
+    };
+    request.send();
+
+  }
+
+
+</script>
+
+{% endblock javascripts %}

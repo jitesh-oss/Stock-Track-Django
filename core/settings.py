@@ -1,7 +1,4 @@
 # -*- encoding: utf-8 -*-
-"""
-Copyright (c) 2019 - present AppSeed.us
-"""
 
 import os
 from decouple import config
@@ -70,15 +67,24 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+# FOR MYSQL ENABLE THIS
+# DATABASES = {
+#     'default': {
+#         'ENGINE'  : 'django.db.backends.mysql',
+#         'NAME'    : 'stock_track',
+#         'USER'    : 'root',
+#         'PASSWORD': 'root',
+#         'HOST'    : 'localhost',
+#         'PORT'    : '3306',
+#         }
+# }
+
+# FOR SQLITE ENABLE THIS
 DATABASES = {
     'default': {
-        'ENGINE'  : 'django.db.backends.mysql',
-        'NAME'    : 'stock_track',
-        'USER'    : 'root',
-        'PASSWORD': 'root',
-        'HOST'    : 'localhost',
-        'PORT'    : '3306',
-        }
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'db.sqlite3',
+    }
 }
 
 # Password validation

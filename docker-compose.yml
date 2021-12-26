@@ -1,5 +1,6 @@
 version: '3.8'
 services:
+
   stock-track:
     container_name: stock_track
     restart: always
@@ -8,6 +9,7 @@ services:
     networks:
       - db_network
       - web_network
+
   nginx:
     container_name: nginx
     restart: always
@@ -20,6 +22,7 @@ services:
       - web_network
     depends_on: 
       - stock-track
+
 networks:
   db_network:
     driver: bridge

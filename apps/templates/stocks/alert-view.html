@@ -1,6 +1,6 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %} View items {% endblock title %}
+{% block title %} View alert items {% endblock title %}
 
 <!-- Specific CSS goes HERE -->
 {% block stylesheets %}
@@ -275,7 +275,7 @@
               <div class="row">
                 <div class="col-lg-6 col-7">
                   <h6>Status</h6>
-                  <button class="btn btn-refresh btn-icon btn-3 btn-primary" onclick="refreshPrice()" type="button">
+                  <button class="btn btn-refresh btn-icon btn-3 btn-primary" onclick="refreshAlert()" type="button">
                     <span class="btn-inner--icon"><i class="fas fa-sync"></i></span>
                     <span class="btn-inner--text">Refresh</span>
                   </button>
@@ -291,13 +291,14 @@
 
                     <tr>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Name</th>
-                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Price Movement</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Condition</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Note</th>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"></th>
                     </tr>
 
                   </thead>
 
-                  <tbody id="stock_list"> 
+                  <tbody id="alert_list"> 
                   </tbody>
 
                 </table>
@@ -318,25 +319,14 @@
 {% block javascripts %}
 
 <script>
-  // var slider = document.getElementById("myRange");
-  // var output = document.getElementById("demo");
-  // output.innerHTML = slider.value;
-  
-  // slider.oninput = function() {
-  //   output.innerHTML = this.value;
-  // }
-</script>
+document.addEventListener('DOMContentLoaded', (event) => {
+  fetchTable()
+});
 
-<script>
-
-  document.addEventListener('DOMContentLoaded', (event) => {
-    fetchTable()
-  });
-  
-  function fetchTable(){
-    var table = document.getElementById('stock_list');
+function fetchTable(){
+    var table = document.getElementById('alert_list');
     var request = new XMLHttpRequest();
-    request.open("POST", '{% url "stocks-all" %}');
+    request.open("POST", '{% url "alerts-all" %}');
     request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
     request.onreadystatechange = function() {
@@ -345,44 +335,43 @@
             var length1 = obj2.result.length
             for (var i=0; i < length1; i++) {
 
-              const last_up1 = new Date(obj2.result[i].fields.last_updated);
+              const last_up1 = new Date(obj2.result[i].fields.al_last_updated);
               var lu_date = last_up1.getDate()+'-'+(last_up1.getMonth()+1)+'-'+last_up1.getFullYear()
               var lu_time = last_up1.getHours() + ":" + last_up1.getMinutes() + ":" + last_up1.getSeconds();
-              const bought_on1 = new Date(obj2.result[i].fields.bought_on);
-
-              position = findPositionStatus(obj2.result[i].fields.st_ltp, obj2.result[i].fields.st_buyprice, obj2.result[i].fields.st_stoploss, obj2.result[i].fields.st_targetprice)
-              var proloss = position.prolos
-              var proloss_css = position.prolos_css
-
-              var final_range = findRange(obj2.result[i].fields.st_ltp, obj2.result[i].fields.st_buyprice, obj2.result[i].fields.st_stoploss, obj2.result[i].fields.st_targetprice)
+              
+              var status = getStatusData(obj2.result[i].fields.al_condition, obj2.result[i].fields.al_triggerprice, obj2.result[i].fields.al_ltp,)
+              var condition = getCondition(obj2.result[i].fields.al_condition)
 
               var row = table.insertRow(0);
               var cell1 = row.insertCell(0);
               var cell2 = row.insertCell(1);
               var cell3 = row.insertCell(2);
+              var cell4 = row.insertCell(3);
               cell1.innerHTML = `
                 <div class="d-flex px-2 py-1">
                 <div class="d-flex flex-column justify-content-center">
-                <h6 class="mb-0 text-sm">`+obj2.result[i].fields.st_name+`</h6>
-                <div>`+obj2.result[i].fields.st_code+` (`+obj2.result[i].fields.exchange_name+`) - (`+obj2.result[i].fields.st_type+`)</div>
-                <span class="text-xs font-weight-bold"> `+bought_on1.toDateString()+` </span>
+                <h6 class="mb-0 text-sm">`+obj2.result[i].fields.al_name+`</h6>
+                <div>`+obj2.result[i].fields.al_code+` (`+obj2.result[i].fields.al_exchange_name+`) - (`+obj2.result[i].fields.al_type+`)</div>
                 </div>
                 </div>
                 `;
               cell2.innerHTML = `
-                <span class="ltp-range text-xs font-weight-bold"> LTP: `+obj2.result[i].fields.st_ltp+` </span>
-                <div class="slidecontainer">
-                  <input type="range" min="1" max="200" value="`+final_range+`" class="slider" id="myRange" disabled>
-                </div>
-                <div class="row">
-                  <div class="col-6 col-md-4 col-sm"><span class="stoploss-range text-xs font-weight-bold"> `+obj2.result[i].fields.st_stoploss+` </span></div>
-                  <div class="col-6 col-md-4 col-sm text-center"><span class="buy-range text-xs font-weight-bold"> `+obj2.result[i].fields.st_buyprice+` </span></div>
-                  <div class="col-6 col-md-4 col-sm text-end"><span class="target-range text-xs font-weight-bold"> `+obj2.result[i].fields.st_targetprice+` </span></div>
-                </div>
+              <div class="d-flex px-2 py-1">
+              <div class="d-flex flex-column justify-content-center">
+              <h6 class="mb-0 text-sm"><span class="badge bg-secondary text-xxs"> LTP: `+obj2.result[i].fields.al_ltp+` </span> <span class="badge `+condition['css']+` text-xxs">`+condition['value']+`</span> <span class="badge bg-secondary text-xxs"> TRIGGER: `+obj2.result[i].fields.al_triggerprice+` </span></h6>
+              </div>
+              </div>
                 `;
               cell3.innerHTML = `
+              <div class="d-flex px-2 py-1">
+                <div class="d-flex flex-column justify-content-center">
+                  <div>`+obj2.result[i].fields.al_note+`</div>
+                </div>
+              </div>
+              `;
+              cell4.innerHTML = `
                 <div class="align-middle text-center">
-                <h6><span class="badge `+proloss_css+` text-xxs"> `+proloss+` </span></h6>
+                <h6><span class="badge `+status['css']+` text-xxs"> `+status['value']+` </span></h6>
                 <span class="text-xs font-weight-bold"> `+lu_date+` `+lu_time+` </span>
                 </div>
               `;
@@ -393,62 +382,54 @@
     request.send();
   }
 
-  function findPositionStatus(ltp, buy, stoploss, target){
-    var prolos = ''
-    if(ltp > buy){
-      if(ltp >= target){
-        prolos = 'Target Hit'
-        prolos_css = 'bg-gradient-success'
+  function getStatusData(condition, trigger, ltp){
+    result = []
+    if(condition == "IF LTP IS LESS THAN TRIGGER PRICE"){
+      if(ltp <= trigger){
+        result['css'] = "bg-gradient-success"
+        result['value'] = "Triggered"
       }
       else{
-        prolos = 'Profit'
-        prolos_css = 'bg-gradient-success'
+        result['css'] = "bg-gradient-danger"
+        result['value'] = "Not Triggered"
       }
     }
-    else if(ltp < buy){
-      if(ltp <= stoploss){
-        prolos = 'StopLoss Hit'
-        prolos_css = 'bg-gradient-danger'
+    else if(condition == "IF LTP IS GREATER THAN TRIGGER PRICE"){
+      if(ltp >= trigger){
+        result['css'] = "bg-gradient-success"
+        result['value'] = "Triggered"
       }
       else{
-        prolos = 'Loss'
-        prolos_css = 'bg-gradient-danger'
+        result['css'] = "bg-gradient-danger"
+        result['value'] = "Not Triggered"
       }
     }
-    else{
-      prolos = 'Neutral'
-      prolos_css = 'bg-gradient-primary'
-    }
-    return {'prolos':prolos, 'prolos_css':prolos_css}
+
+    return result
   }
 
-  function findRange(ltp, buy, stoploss, target){
-    if(ltp > buy){
-      var bigN1 = target - buy
-      var smallN1 = ltp - buy
-      final_range1 = 100 + ((smallN1*100)/bigN1)
-    }
-    else if(ltp < buy){
-      var bigN = buy - stoploss
-      var smallN = buy - ltp
-      final_range1 = 100 - ((smallN*100)/bigN)
-    }
-    else if(ltp == buy){
-      final_range1 = 100
-    }
-    return final_range1
+function getCondition(condition){
+  result1 = []
+  if(condition == "IF LTP IS LESS THAN TRIGGER PRICE"){
+    result1['value'] = "IS LESS THAN"
+    result1['css'] = "bg-warning"
   }
+  else if(condition == "IF LTP IS GREATER THAN TRIGGER PRICE"){
+    result1['value'] = "IS GREATER THAN"
+    result1['css'] = "bg-info"
+  }
+  return result1
+}
 
-  function refreshPrice(){
-    var table = document.getElementById('stock_list');
+function refreshAlert(){
+    var table = document.getElementById('alert_list');
     var request = new XMLHttpRequest();
-    request.open("POST", '{% url "refresh-price" %}');
+    request.open("POST", '{% url "refresh-alert" %}');
     request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
     request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
     request.onreadystatechange = function() {
         if(this.readyState === 4 && this.status === 200) {
             var obj2 = JSON.parse(this.responseText)
-            // console.log(obj2)
 
             while(table.hasChildNodes()){
               table.removeChild(table.firstChild);
@@ -460,8 +441,6 @@
     request.send();
 
   }
-
-
 </script>
 
 {% endblock javascripts %}

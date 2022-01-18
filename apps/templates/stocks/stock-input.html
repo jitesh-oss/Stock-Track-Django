@@ -71,6 +71,14 @@
                     </select>
                   </div>
                   <div class="form-group">
+                    <label for="stock-type">Type</label>
+                    <select class="form-control" name="stock-type" id="stock-type">
+                      <option></option>
+                      <option>EQUITY</option>
+                      <option>DERIVATIVE</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
                     <label for="stock-code">Stock Code</label>
                     <input type="text" class="form-control" name="stock-code" id="stock-code" placeholder="SBI, RELIANCE">
                     <div id="st-result" class="st-result-card not-visible"></div>
@@ -78,7 +86,7 @@
                   <div class="form-group">
                     <label for="stock-name">Stock Name</label>
                     <input type="text" class="form-control" name="stock-name" id="stock-name">
-                  </div>
+                  </div>             
                   <div class="form-group">
                     <label for="lt-price">Last Traded Price</label>
                     <input type="text" class="form-control" name="lt-price" id="lt-price">
@@ -129,6 +137,7 @@
 
   <script>
     const exchange = document.getElementById('exchange-name')
+    const stock_type = document.getElementById('stock-type')
     const stock_code = document.getElementById('stock-code')
     const stock_name = document.getElementById('stock-name')
     const stock_resbox = document.getElementById('st-result')
@@ -183,7 +192,23 @@
 
     lt_price.addEventListener('click', e=>{
 
-      if(exchange.value == 'NSE'){
+      if(stock_type.value == 'DERIVATIVE'){
+        var que1 = stock_code.value
+        var postData1 = "que="+que1;
+        var request = new XMLHttpRequest();
+        request.open("POST", '{% url "fut-price" %}');
+        request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+        request.onreadystatechange = function() {
+            if(this.readyState === 4 && this.status === 200) {
+                var obj2 = JSON.parse(this.responseText)
+                lt_price.value = obj2['price']
+            }
+          };
+        request.send(postData1);
+      }
+      else{
+        if(exchange.value == 'NSE'){
         var que1 = stock_code.value
         var postData1 = "que="+que1;
         var request = new XMLHttpRequest();
@@ -195,23 +220,24 @@
                 var obj2 = JSON.parse(this.responseText)
                 lt_price.value = obj2['price']
             }
-        };
+          };
         request.send(postData1);
-      }
-      else if(exchange.value == 'BSE'){
-        var que1 = stock_code.value
-        var postData1 = "que="+que1;
-        var request = new XMLHttpRequest();
-        request.open("POST", '{% url "bse-price" %}');
-        request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-        request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
-        request.onreadystatechange = function() {
-            if(this.readyState === 4 && this.status === 200) {
-                var obj2 = JSON.parse(this.responseText)
-                lt_price.value = obj2['price']
-            }
-        };
-        request.send(postData1);
+        }
+        else if(exchange.value == 'BSE'){
+          var que1 = stock_code.value
+          var postData1 = "que="+que1;
+          var request = new XMLHttpRequest();
+          request.open("POST", '{% url "bse-price" %}');
+          request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+          request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+          request.onreadystatechange = function() {
+              if(this.readyState === 4 && this.status === 200) {
+                  var obj2 = JSON.parse(this.responseText)
+                  lt_price.value = obj2['price']
+              }
+          };
+          request.send(postData1);
+        }
       }
 
     })

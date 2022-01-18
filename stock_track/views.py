@@ -10,12 +10,12 @@ import json
 from nsepython import *
 from django.utils import timezone
 from .forms import inputForm
-from .models import Stocksmain
+from .models import Stocksmain, Alertsmain
 from django.utils.timezone import make_aware
 from bs4 import BeautifulSoup
 from bsedata.bse import BSE
 from django.core import serializers
-from .functions import nse_livesearch, nse_getPrice, bse_getPrice, bse_livesearch, getAllstocks, updatePrice, stockTrackDashboard
+from .functions import nse_livesearch, nse_getPrice, bse_getPrice, fut_getPrice, bse_livesearch, getAllstocks, getAllstocks_all, updatePrice, stockTrackDashboard, checkStatus, alertDashboard, getAllalerts, updateAlert, getAllalerts_all, checkAlertStatus
 
 # All the views for stock_track
 
@@ -27,9 +27,9 @@ def stock_input(request):
         now = datetime.datetime.now()
         aware_datetime = make_aware(now)
 
-        items = Stocksmain(exchange_name = request.POST['exchange-name'], st_name = request.POST['stock-name'], st_code = request.POST['stock-code'], st_buyprice = request.POST['buy-price'], st_targetprice = request.POST['target-price'], st_stoploss = request.POST['stoploss-price'], st_ltp = request.POST['lt-price'], bought_on = request.POST['date'], user_id = current_user.id, last_updated = aware_datetime)
+        items = Stocksmain(exchange_name = request.POST['exchange-name'], st_type =  request.POST['stock-type'],st_name = request.POST['stock-name'], st_code = request.POST['stock-code'], st_buyprice = request.POST['buy-price'], st_targetprice = request.POST['target-price'], st_stoploss = request.POST['stoploss-price'], st_ltp = request.POST['lt-price'], bought_on = request.POST['date'], user_id = current_user.id, last_updated = aware_datetime)
 
-        if (request.POST['exchange-name'] != '' and request.POST['stock-name'] != '' and request.POST['stock-code'] != '' and  request.POST['buy-price'] != '' and request.POST['target-price'] != '' and request.POST['stoploss-price'] != '' and request.POST['lt-price'] != '' and request.POST['date'] != ''):
+        if (request.POST['exchange-name'] != '' and request.POST['stock-type'] != '' and request.POST['stock-name'] != '' and request.POST['stock-code'] != '' and  request.POST['buy-price'] != '' and request.POST['target-price'] != '' and request.POST['stoploss-price'] != '' and request.POST['lt-price'] != '' and request.POST['date'] != ''):
             context = {'msg': 'Succesfully added '+request.POST['stock-name']+' to database', 'status': 'success', 'segment': 'Add items'}
             # print(items)
             items.save()
@@ -74,6 +74,15 @@ def bseStockPrice(request):
     if request.method == 'POST':
         que = request.POST.get('que')
         result = bse_getPrice(que)
+        return JsonResponse(result)
+    else:
+        return JsonResponse({'price':'0', 'status':'error'})
+
+@login_required(login_url="/login/")
+def futStockPrice(request):
+    if request.method == 'POST':
+        que = request.POST.get('que')
+        result = fut_getPrice(que)
         return JsonResponse(result)
     else:
         return JsonResponse({'price':'0', 'status':'error'})
@@ -131,11 +140,25 @@ def refreshPrice(request):
         userid = current_user.id
         allStockList = getAllstocks(userid)
         for val in allStockList:
-            updatePrice(val['pk'], val['fields']['st_code'], val['fields']['exchange_name'])
+            updatePrice(val['pk'], val['fields']['st_code'], val['fields']['exchange_name'], val['fields']['st_type'])
         data = {"status": "success"}
         return JsonResponse(data)
     else:
         return JsonResponse({'status':'error'})
+
+def refreshStockTrack(request):
+    allStockList = getAllstocks_all()
+    for val in allStockList:
+        updatePrice(val['pk'], val['fields']['st_code'], val['fields']['exchange_name'], val['fields']['st_type'])
+    data = {"status": "StockTrack Table Refreshed"}
+    return JsonResponse(data)
+
+def statusStockTrack(request):
+    allStockList = getAllstocks_all()
+    for val in allStockList:
+        checkStatus(val['fields']['st_code'], val['fields']['st_name'], val['fields']['exchange_name'], val['fields']['st_type'], val['fields']['st_ltp'], val['fields']['st_buyprice'], val['fields']['st_targetprice'], val['fields']['st_stoploss'])
+    data = {"status": "Message Sent on Skype"}
+    return JsonResponse(data)
 
 @login_required(login_url="/login/")
 def stockEdit(request, stock_id):
@@ -160,3 +183,102 @@ def stockEdit(request, stock_id):
     # print(all_entries)
     html_template = loader.get_template('stocks/stock-single-edit.html')
     return HttpResponse(html_template.render(context, request))
+
+
+# All the views for Alert Stock
+    
+@login_required(login_url="/login/")
+def alert_input(request):
+    if request.method == "POST":
+        current_user = request.user
+        now = datetime.datetime.now()
+        aware_datetime = make_aware(now)
+        items = Alertsmain(al_exchange_name = request.POST['exchange-name'], 
+        al_type = request.POST['stock-type'], al_name = request.POST['stock-name'], 
+        al_code = request.POST['stock-code'], al_triggerprice = request.POST['trigger-price'], 
+        al_ltp = request.POST['lt-price'], al_condition = request.POST['al-condition'], 
+        al_note = request.POST['al-notes'], al_user_id = current_user.id, al_last_updated = aware_datetime)
+        
+        if (request.POST['exchange-name'] != '' and request.POST['stock-type'] != '' and 
+        request.POST['stock-name'] != '' and request.POST['stock-code'] != '' and  
+        request.POST['trigger-price'] != '' and request.POST['lt-price'] != '' and 
+        request.POST['al-condition'] != '' and request.POST['al-notes'] != ''):
+            context = {'msg': 'Succesfully added '+request.POST['stock-name']+' to alert database', 'status': 'success', 'segment': 'Add alert items'}
+            # print(items)
+            items.save()
+        else:
+            context = {'msg': 'Please fill all the fields', 'status': 'error', 'segment': 'Add alert items', 'page' : 'alerts / Insert'}
+    else:
+        context = {'msg': False, 'status': 'error', 'segment': 'Add alert items', 'page' : 'alerts / Insert'}
+    
+    html_template = loader.get_template('stocks/alert-input.html')
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
+def alert_view(request):
+    current_user = request.user
+    userid = current_user.id
+    data_view = 'test'
+    context = {'segment': 'View alert items', 'data' : data_view, 'page' : 'alerts / View'}
+    html_template = loader.get_template('stocks/alert-view.html')
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
+def alertsAll(request):
+    if request.method == 'POST':
+        current_user = request.user
+        userid = current_user.id
+        result = getAllalerts(userid)
+        data = {"result": result, "status": "success"}
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'status':'error'})
+
+@login_required(login_url="/login/")
+def refreshAlert(request):
+    if request.method == 'POST':
+        current_user = request.user
+        userid = current_user.id
+        allAlertList = getAllalerts(userid)
+        for val in allAlertList:
+            updateAlert(val['pk'], val['fields']['al_code'], val['fields']['al_exchange_name'], val['fields']['al_type'])
+        data = {"status": "success"}
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'status':'error'})
+
+@login_required(login_url="/login/")
+def alert_edit(request):
+    current_user = request.user
+    userid = current_user.id
+    all_entries = Alertsmain.objects.filter(al_user_id = userid)
+    context = {'segment': 'Edit alert items', 'data': all_entries, 'page' : 'alerts / Edit'}
+    html_template = loader.get_template('stocks/alert-edit.html')
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
+def alertDelete(request):
+    if request.method == 'POST':
+        id = request.POST.get('id')
+        result = Alertsmain.objects.filter(id=id).delete()
+        # print(result)
+        if (result[0] == 1):
+            return JsonResponse({'status':'success'})
+        else:
+            return JsonResponse({'status':'error'})
+    else:
+        return JsonResponse({'status':'error'})
+
+def refreshallAlerts(request):
+    allAlertList = getAllalerts_all()
+    for val in allAlertList:
+        updateAlert(val['pk'], val['fields']['al_code'], val['fields']['al_exchange_name'], val['fields']['al_type'])
+    data = {"status": "Alerts Table Refreshed"}
+    return JsonResponse(data)
+
+def statusAlerts(request):
+    allAlertList = getAllalerts_all()
+    for val in allAlertList:
+        checkAlertStatus(val['fields']['al_code'], val['fields']['al_name'], val['fields']['al_exchange_name'], val['fields']['al_type'], val['fields']['al_ltp'], val['fields']['al_condition'], val['fields']['al_triggerprice'], val['fields']['al_note'])
+    data = {"status": "Message Sent on Skype"}
+    return JsonResponse(data)

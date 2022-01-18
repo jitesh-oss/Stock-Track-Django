@@ -1,6 +1,6 @@
 {% extends 'layouts/base.html' %}
 
-{% block title %} Edit items {% endblock title %}
+{% block title %} Add alert items {% endblock title %}
 
 <!-- Specific CSS goes HERE -->
 {% block stylesheets %}
@@ -36,8 +36,8 @@
         <div class="card-header pb-0">
           <div class="row">
             <div class="col-lg-6 col-7">
-              <h6>Edit</h6>
-              <p class="text-sm">Edit existing stock info</p>
+              <h6>Insert</h6>
+              <p class="text-sm">New stock alert info</p>
             </div>
           </div>
         </div>
@@ -60,56 +60,56 @@
                 {% endif %}
               {% endif %}
 
-              {% for val in data %}
                 <form action = "" method = "POST">
                   {% csrf_token %}
                   <div class="form-group">
-                    <label for="stock-id">ID</label>
-                    <input type="text" class="form-control" name="stock-id" id="stock-id" value="{{ val.id }}" disabled>
-                  </div>
-                  <div class="form-group">
-                    <label for="exchange-name">Exchange</label>
-                    <input type="text" class="form-control" name="exchange-name" id="exchange-name" value="{{ val.exchange_name }}" disabled>
-                    <div id="st-result" class="st-result-card not-visible"></div>
+                    <label for="exchange-name">Exchange Name</label>
+                    <select class="form-control" name="exchange-name" id="exchange-name">
+                      <option></option>
+                      <option>NSE</option>
+                      <option>BSE</option>
+                    </select>
                   </div>
                   <div class="form-group">
                     <label for="stock-type">Type</label>
-                    <input type="text" class="form-control" name="stock-type" id="stock-type" value="{{ val.st_type }}" disabled>
-                    <div id="st-result" class="st-result-card not-visible"></div>
+                    <select class="form-control" name="stock-type" id="stock-type">
+                      <option></option>
+                      <option>EQUITY</option>
+                      <option>DERIVATIVE</option>
+                    </select>
                   </div>
                   <div class="form-group">
                     <label for="stock-code">Stock Code</label>
-                    <input type="text" class="form-control" name="stock-code" id="stock-code" value="{{ val.st_code }}" disabled>
+                    <input type="text" class="form-control" name="stock-code" id="stock-code" placeholder="SBI, RELIANCE">
                     <div id="st-result" class="st-result-card not-visible"></div>
                   </div>
                   <div class="form-group">
                     <label for="stock-name">Stock Name</label>
-                    <input type="text" class="form-control" name="stock-name" id="stock-name" value="{{ val.st_name }}" disabled>
-                  </div>
+                    <input type="text" class="form-control" name="stock-name" id="stock-name">
+                  </div>             
                   <div class="form-group">
                     <label for="lt-price">Last Traded Price</label>
-                    <input type="text" class="form-control" name="lt-price" id="lt-price" value="{{ val.st_ltp }}">
+                    <input type="text" class="form-control" name="lt-price" id="lt-price">
                   </div>
                   <div class="form-group">
-                    <label for="buy-price">Buy Price</label>
-                    <input type="number" class="form-control" name="buy-price" id="buy-price" value="{{ val.st_buyprice }}">
+                    <label for="al-condition">Condition</label>
+                    <select class="form-control" name="al-condition" id="al-condition">
+                      <option></option>
+                      <option>IF LTP IS LESS THAN TRIGGER PRICE</option>
+                      <option>IF LTP IS GREATER THAN TRIGGER PRICE</option>
+                    </select>
                   </div>
                   <div class="form-group">
-                    <label for="target-price">Target Price</label>
-                    <input type="number" class="form-control" name="target-price" id="target-price" value="{{ val.st_targetprice }}">
+                    <label for="trigger-price">Trigger Price</label>
+                    <input type="number" class="form-control" name="trigger-price" id="trigger-price">
                   </div>
                   <div class="form-group">
-                    <label for="stoploss-price">Stoploss Price</label>
-                    <input type="number" class="form-control" name="stoploss-price" id="stoploss-price" value="{{ val.st_stoploss }}">
-                  </div>
-                  <div class="form-group">
-                    <label for="date">Date</label>
-                    <input type="date" class="form-control" name="date" id="date" value="{{val.bought_on|date:'Y-m-d'}}">
+                    <label for="al-notes">Notes</label>
+                    <textarea class="form-control" id="al-notes" name="al-notes" rows="3"></textarea>
                   </div>
                   <button class="btn btn-primary" type="submit" >Submit</button>
                 </form>
-                {% endfor %}
-
+           
           </div>
         </div>
       </div>
@@ -219,9 +219,9 @@
             if(this.readyState === 4 && this.status === 200) {
                 var obj2 = JSON.parse(this.responseText)
                 lt_price.value = obj2['price']
-              }
+            }
           };
-          request.send(postData1);
+        request.send(postData1);
         }
         else if(exchange.value == 'BSE'){
           var que1 = stock_code.value
@@ -239,7 +239,6 @@
           request.send(postData1);
         }
       }
-      
 
     })
 

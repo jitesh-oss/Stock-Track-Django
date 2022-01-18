@@ -25,7 +25,7 @@
           <div class="row">
             <div class="col-lg-6 col-7">
               <h6>Edit</h6>
-              <p class="text-sm">Existing stock info</p>
+              <p class="text-sm">Existing stock alert info</p>
             </div>
           </div>
         </div>
@@ -37,7 +37,7 @@
             <tr>
               <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Exchange</th>
               <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Name</th>
-              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Bought on</th>
+              <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Condition</th>
               <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Last Updated</th>
               <th class="text-secondary opacity-7"></th>
             </tr>
@@ -50,31 +50,27 @@
                 <td>
                   <div class="d-flex px-2 py-1">
                     <div class="d-flex flex-column justify-content-center">
-                      <h6 class="mb-0 text-xs">{{ val.exchange_name }} - {{ val.st_type }}</h6>
+                      <h6 class="mb-0 text-xs">{{ val.al_exchange_name }} - {{ val.al_type }}</h6>
                       <!-- <p class="text-xs text-secondary mb-0">john@creative-tim.com</p> -->
                     </div>
                   </div>
                 </td>
                 <td>
-                  <p class="text-xs font-weight-bold mb-0">{{ val.st_name }}</p>
-                  <p class="text-xs text-secondary mb-0">{{ val.st_code }}</p>
+                  <p class="text-xs font-weight-bold mb-0">{{ val.al_name }}</p>
+                  <p class="text-xs text-secondary mb-0">{{ val.al_code }}</p>
                 </td>
                 <td class="align-middle text-center">
-                  <span class="text-secondary text-xs font-weight-bold">{{ val.bought_on }}</span>
+                  <span class="text-secondary text-xs font-weight-bold">{{ val.al_condition }}</span>
                 </td>
                 <td class="align-middle text-center">
-                  <span class="text-secondary text-xs font-weight-bold">{{ val.last_updated }}</span>
+                  <span class="text-secondary text-xs font-weight-bold">{{ val.al_last_updated }}</span>
                 </td>
                 <td class="align-middle text-center">
                   <span class="text-secondary text-xs font-weight-bold">
                     <!-- <button type="button" class="btn bg-gradient-primary" data-bs-toggle="modal" data-bs-target="#exampleModal">
                       Launch demo modal
                     </button> -->
-                    <a role="button" data-id='{{ val.id }}' data-bs-toggle="modal" data-bs-target="#view_single_{{ val.id }}"><i class="far fa-eye fa-lg"></i></a>
-                    /
-                    <a data-id='{{ val.id }}' href='{% url "stocks-edit" stock_id=val.id %}'><i class="far fa-edit fa-lg"></i></a> 
-                    / 
-                    <a role="button" data-id='{{ val.id }}' onclick='delete_stock(this)'><i class="far fa-trash-alt fa-lg"></i></a>
+                    <a role="button" data-id='{{ val.id }}' onclick='delete_alert(this)'><i class="far fa-trash-alt fa-lg"></i></a>
                   </span>
                 </td>
               </tr>
@@ -89,35 +85,6 @@
       </div>
     </div>
   </div>
-
-  {% for val1 in data %}
-    <!-- Modal -->
-    <div class="modal fade" id="view_single_{{ val1.id }}" tabindex="-1" role="dialog" aria-labelledby="view_single_{{ val1.id }}Label" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="view_single_{{ val1.id }}Label">{{ val1.st_name }}</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-              <span aria-hidden="false">&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <p>{{ val1.st_code }} ({{ val1.exchange_name }}) - ({{ val1.st_type }})</p>
-            <p><mark>Last Traded Price</mark>: {{ val1.st_ltp }}</p>
-            <p><mark>Buy Price</mark>: {{ val1.st_buyprice }}</p>
-            <p><mark>StopLoss Price</mark>: {{ val1.st_stoploss }}</p>
-            <p><mark>Target Price</mark>: {{ val1.st_targetprice }}</p>
-            <p><mark>Bought On</mark>: {{ val1.bought_on }}</p>
-            <p><mark>Last Updated</mark>: {{ val1.last_updated }}</p>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn bg-gradient-secondary" data-bs-dismiss="modal">Close</button>
-            <!-- <button type="button" class="btn bg-gradient-primary">Save changes</button> -->
-          </div>
-        </div>
-      </div>
-    </div>
-    {% endfor %}
 
   {% include "includes/footer.html" %}
 
@@ -144,12 +111,12 @@
   </script>
 
   <script>
-    function delete_stock(data) {
+    function delete_alert(data) {
       if (confirm("Are you sure you want to Delete this record?") == true) {
         var id = data.dataset.id
         var postData1 = "id="+id;
         var request = new XMLHttpRequest();
-        request.open("POST", '{% url "stock-delete" %}');
+        request.open("POST", '{% url "alert-delete" %}');
         request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
         request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
         request.onreadystatechange = function() {

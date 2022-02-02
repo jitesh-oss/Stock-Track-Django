@@ -1,0 +1,166 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Edit entry {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}
+<style>
+  .st-result-card{
+    width: 100%;
+    transition: .5s;
+    box-shadow: 0 8px 8px 0 rgba(0,0,0,0.25);
+    border-radius: 7px;
+    padding: 15px 15px;
+    margin: auto;
+    z-index: 10;
+    /* position: absolute; */
+  }
+  .not-visible{
+    display: none;
+  }
+  a:hover {
+       cursor: pointer;
+       background-color:  #fff9f7 ;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+  <div class="row my-3">
+    
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header pb-0">
+          <div class="row">
+            <div class="col-lg-6 col-7">
+              <h6>Edit entry</h6>
+              <p class="text-sm">ID: {% for val in data %} {{ val.pk }} {% endfor %}</p>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-3">
+          <div class="row">
+
+            {% if status == 'success' %}
+                {% if msg %}
+                <div class="alert alert-success text-white" role="alert">
+                  <strong>Success!</strong> {{ msg }}
+                </div>
+                {% endif %}
+              {% endif %}
+
+              {% if status == 'error' %}
+                {% if msg %}
+                <div class="alert alert-danger text-white" role="alert">
+                  <strong>Error!</strong> {{ msg }}
+                </div>
+                {% endif %}
+              {% endif %}
+
+              {% for val in data %}
+              <form action = "" method = "POST">
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="jou-category">Category</label>
+                  <input type="text" class="form-control" name="jou-category" id="jou-category" value="{{ val.fields.jou_category }}" disabled>
+                </div>
+                <div class="form-group">
+                  <label for="jou-exchange">Exchange Name</label>
+                  <input type="text" class="form-control" name="jou-exchange" id="jou-exchange" value="{{ val.fields.jou_exchange }}" disabled>
+                </div>
+                <div class="form-group">
+                  <label for="jou-name">Stock Name</label>
+                  <input type="text" class="form-control" name="jou-name" id="jou-name" value="{{ val.fields.jou_name }}" disabled>
+                </div>             
+                <div class="form-group">
+                  <label for="jou-buydate">Buy Datetime</label>
+                  <input type="datetime-local" class="form-control" name="jou-buydate" id="jou-buydate" value="{{val.fields.buydate}}T{{val.fields.24buytime}}">
+                </div>
+                <div class="form-group">
+                  <label for="jou-buyprice">Buy Price</label>
+                  <input type="text" class="form-control" name="jou-buyprice" id="jou-buyprice" step="any" value="{{ val.fields.jou_buyprice }}">
+                </div>
+                <div class="form-group">
+                  <label for="jou-buyqty">Buy Qty</label>
+                  <input type="text" class="form-control" name="jou-buyqty" id="jou-buyqty" value="{{ val.fields.jou_buyqty }}">
+                </div>
+                <div class="form-group">
+                  <label for="jou-selldate">Sell Datetime</label>
+                  <input type="datetime-local" class="form-control" name="jou-selldate" id="jou-selldate" value="{{val.fields.selldate}}T{{val.fields.24selltime}}">
+                </div>
+                <div class="form-group">
+                  <label for="jou-sellprice">Sell Price</label>
+                  <input type="text" class="form-control" name="jou-sellprice" id="jou-sellprice" step="any" value="{{ val.fields.jou_sellprice }}">
+                </div>
+                <div class="form-group">
+                  <label for="jou-sellqty">Sell Qty</label>
+                  <input type="text" class="form-control" name="jou-sellqty" id="jou-sellqty" value="{{ val.fields.jou_sellqty }}">
+                </div>
+                <div class="form-group">
+                  <label for="jou-status">Status</label>
+                  <select class="form-control" name="jou-status" id="jou-status">
+                    <option></option>
+                    <option {% if val.fields.jou_status == "OPEN" %}selected="selected"{% endif %}>OPEN</option>
+                    <option {% if val.fields.jou_status == "CLOSE" %}selected="selected"{% endif %}>CLOSE</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="jou-pl">Total</label>
+                  <input type="text" class="form-control" name="jou-pl" id="jou-pl" value="{{ val.fields.jou_pl }}">
+                </div>
+                <div class="form-group">
+                  <label for="jou-notes">Notes</label>
+                  <textarea class="form-control" id="jou-notes" name="jou-notes" rows="3">{{ val.fields.jou_note }}</textarea>
+                </div>
+                <button class="btn btn-primary" type="submit" >Submit</button>
+              </form>
+              {% endfor %}
+           
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+
+</div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+
+<script>
+
+const total_pl = document.getElementById('jou-pl')
+const buy_price = document.getElementById('jou-buyprice')
+const buy_qty = document.getElementById('jou-buyqty')
+const sell_price = document.getElementById('jou-sellprice')
+const sell_qty = document.getElementById('jou-sellqty')
+const jou_status = document.getElementById('jou-status')
+
+total_pl.addEventListener('click', e=>{
+
+if(jou_status.value == "CLOSE"){
+  if(buy_qty.value == sell_qty.value){
+    totalpl = (sell_price.value*sell_qty.value)-(buy_price.value*buy_qty.value)
+    total_pl.value = totalpl
+  }
+  else{
+    alert("BUY SELL QUANTITY MISMATCH, PLEASE FIX!")
+    total_pl.value = 0
+  }
+}
+else{
+  total_pl.value = 0
+}
+
+})
+
+</script>
+
+{% endblock javascripts %}

@@ -31,4 +31,14 @@ urlpatterns = [
     path('alerts/refresh-allalerts/', views.refreshallAlerts, name='refresh-allalerts'),
     path('alerts/status-alerts/', views.statusAlerts, name='status-alerts'),
 
+    # Stock Journal
+    path('journal/category/', views.category_journal, name='category-journal'),
+    path('journal/category-table/', views.category_journal_table, name='category-table'),
+    path('journal/category-delete/', views.categoryDelete, name='category-delete'),
+    path('journal/add/', views.journal_input, name='journal-add'),
+    path('journal/view/', views.journal_view_all, name='journal-view'),
+    path('journal/view/<int:jou_id>/', views.journal_edit_one, name='journal-editone'),
+    path('journal/view/journal-delete/', views.journalDelete, name='journal-delete'),
+    path('journal/view/one', views.journal_view_one, name='journal-viewone'),
+
 ]

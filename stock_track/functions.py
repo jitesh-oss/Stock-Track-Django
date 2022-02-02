@@ -1,18 +1,20 @@
 import requests
 import json
 import datetime
-from datetime import date
-from datetime import datetime
+from datetime import *
 from nsepython import *
 from bsedata.bse import BSE
 from bs4 import BeautifulSoup
 from django.core import serializers
-from .models import Stocksmain, Alertsmain
+from .models import Stocksmain, Alertsmain, Categorymain, Journalmain
 from django.utils import timezone
 from django.utils.timezone import make_aware
 from requests import Session
 from skpy import Skype
 from decouple import config
+from dateutil import parser
+# from pytz import timezone
+import pytz
 
 def nse_livesearch(que):
     url = "https://www.nseindia.com/api/search/autocomplete?q="+que
@@ -188,25 +190,19 @@ def checkStatus(st_code, st_name, st_exchange, st_type, st_ltp, st_buy, st_targe
 
 def alertDashboard(userid):
     all_entries = Alertsmain.objects.filter(al_user_id = userid)
-    totalStock = 0
-    profitStock = 0
-    lossStock = 0
-    attentionStock = 0
+    totalAlert = 0
+    attentionAlert = 0
     for val in all_entries:
-        if val.st_ltp > val.st_buyprice:
-            profitStock += 1
-        if val.st_ltp < val.st_buyprice:
-            lossStock += 1
-        if val.st_ltp <= val.st_stoploss:
-            attentionStock += 1
-        if val.st_ltp >= val.st_targetprice:
-            attentionStock += 1
-        totalStock += 1
+        if val.al_condition == "IF LTP IS LESS THAN TRIGGER PRICE":
+            if val.al_ltp <= val.al_triggerprice:
+                attentionAlert = attentionAlert + 1
+        elif val.al_condition == "IF LTP IS GREATER THAN TRIGGER PRICE":
+            if val.al_ltp >= val.al_triggerprice:
+                attentionAlert = attentionAlert + 1
+        totalAlert += 1
     data_view = {}
-    data_view['total'] = totalStock
-    data_view['profit'] = profitStock
-    data_view['loss'] = lossStock
-    data_view['attention'] = attentionStock
+    data_view['totalAlert'] = totalAlert
+    data_view['attentionAlert'] = attentionAlert
     return data_view
 
 def getAllalerts(userid):
@@ -246,3 +242,66 @@ def checkAlertStatus(al_code, al_name, al_exchange, al_type, al_ltp, al_conditio
         if al_ltp >= al_trigger:
             message = "Your alert for "+al_name+"("+al_code+") - ("+al_exchange+")("+al_type+") has been triggered since LTP:"+str(al_ltp)+" is greater than "+str(al_trigger)+" with Note: "+al_note
             message_skype(message)
+
+def getAllcategories(userid):
+    CategorymainModel_json = serializers.serialize("json", Categorymain.objects.filter(cat_userid = userid).order_by('cat_createdon'))
+    json_object = json.loads(CategorymainModel_json)
+    return json_object
+
+def getAlljournal(userid, category):
+    JournalmainModel_json = serializers.serialize("json", Journalmain.objects.filter(jou_userid = userid, jou_category = category).order_by('jou_buydatetime'))
+    json_object = json.loads(JournalmainModel_json)
+    for val in json_object:
+        buydatetime = convertDatetimetoLocal(val['fields']['jou_buydatetime'])
+        selldatetime = convertDatetimetoLocal(val['fields']['jou_selldatetime'])
+        val['fields']['rawbuydatetime'] = buydatetime
+        val['fields']['buydate'] = buydatetime['date']
+        val['fields']['selldate'] = selldatetime['date']
+        val['fields']['buytime'] = buydatetime['time']
+        val['fields']['selltime'] = selldatetime['time']
+    return json_object
+
+def getAlljournalwithID(userid, id):
+    JournalmainModel_json = serializers.serialize("json", Journalmain.objects.filter(jou_userid = userid, id = id).order_by('jou_buydatetime'))
+    json_object = json.loads(JournalmainModel_json)
+    for val in json_object:
+        buydatetime = convertDatetimetoLocal(val['fields']['jou_buydatetime'])
+        selldatetime = convertDatetimetoLocal(val['fields']['jou_selldatetime'])
+        val['fields']['buydate'] = buydatetime['date']
+        val['fields']['selldate'] = selldatetime['date']
+        val['fields']['buytime'] = buydatetime['time']
+
+        buy_inputTime = buydatetime['time']
+        buy_in_time = datetime.datetime.strptime(buy_inputTime, "%I:%M %p")
+        buy_out_time = datetime.datetime.strftime(buy_in_time, "%H:%M")
+        val['fields']['24buytime'] = buy_out_time
+
+        sell_inputTime = selldatetime['time']
+        sell_in_time = datetime.datetime.strptime(sell_inputTime, "%I:%M %p")
+        sell_out_time = datetime.datetime.strftime(sell_in_time, "%H:%M")
+        val['fields']['selltime'] = selldatetime['time']
+        val['fields']['24selltime'] = sell_out_time
+        
+        createdOndatetime = convertDatetimetoLocal(val['fields']['jou_createdon'])
+        val['fields']['createdondate'] = createdOndatetime['date']
+        val['fields']['createdontime'] = createdOndatetime['time']
+    return json_object
+
+def convertDatetimetoLocal(rawtime):
+    dateformatted = {}
+    raw1 = parser.parse(rawtime)
+    utc = raw1.replace(tzinfo=pytz.UTC)
+    localtz = utc.astimezone(timezone.get_current_timezone())
+    dateformatted['date'] = localtz.strftime("%Y-%m-%d")
+    dateformatted['time'] = localtz.strftime("%I:%M %p")
+    return dateformatted
+
+def timeconvert(str1):
+    if str1[-2:] == "AM" and str1[:2] == "12":
+        return "00" + str1[2:-2]
+    elif str1[-2:] == "AM":
+        return str1[:-2]
+    elif str1[-2:] == "PM" and str1[:2] == "12":
+        return str1[:-2]
+    else:
+        return str(int(str1[:2]) + 12) + str1[2:8]

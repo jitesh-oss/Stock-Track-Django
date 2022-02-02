@@ -1,0 +1,207 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Category {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}
+<style>
+  .st-result-card{
+    width: 100%;
+    transition: .5s;
+    box-shadow: 0 8px 8px 0 rgba(0,0,0,0.25);
+    border-radius: 7px;
+    padding: 15px 15px;
+    margin: auto;
+    z-index: 10;
+    /* position: absolute; */
+  }
+  .not-visible{
+    display: none;
+  }
+  a:hover {
+       cursor: pointer;
+       background-color:  #fff9f7 ;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+  <div class="row my-3">
+    
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header pb-0">
+          <div class="row">
+            <div class="col-lg-6 col-7">
+              <h6>Category</h6>
+              <p class="text-sm">Categories for journal</p>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-3">
+          <div class="row">
+
+            {% if status == 'success' %}
+                {% if msg %}
+                <div class="alert alert-success text-white" role="alert">
+                  <strong>Success!</strong> {{ msg }}
+                </div>
+                {% endif %}
+              {% endif %}
+
+              {% if status == 'error' %}
+                {% if msg %}
+                <div class="alert alert-danger text-white" role="alert">
+                  <strong>Error!</strong> {{ msg }}
+                </div>
+                {% endif %}
+              {% endif %}
+
+                <form action = "" method = "POST">
+                  {% csrf_token %}
+                  <div class="form-group">
+                    <label for="cat-name">Name</label>
+                    <input type="text" class="form-control" name="cat-name" id="cat-name">
+                  </div>
+                  <div class="form-group">
+                    <label for="cat-desc">Description</label>
+                    <textarea class="form-control" id="cat-desc" name="cat-desc" rows="3"></textarea>
+                  </div>
+                  <button class="btn btn-primary" type="submit" >Submit</button>
+                </form>
+           
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row my-4">
+    <div class="col-lg-12 col-md-12">
+      <div class="card">
+        <div class="card-header pb-0">
+          <div class="row">
+            <div class="col-lg-6 col-7">
+              <h6>Categories</h6>
+            </div>
+          </div>
+        </div>
+        <div class="card-body px-0 pb-2">
+          <div class="table-responsive">
+
+            <table class="table align-items-center mb-0">
+
+              <thead>
+
+                <tr>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Name</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Description</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Created On</th>
+                  <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2"></th>
+                </tr>
+
+              </thead>
+
+              <tbody id="category_list"> 
+              </tbody>
+
+            </table>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  
+
+  {% include "includes/footer.html" %}
+
+</div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', (event) => {
+  fetchTable()
+});
+
+function fetchTable(){
+    var table = document.getElementById('category_list');
+    var request = new XMLHttpRequest();
+    request.open("POST", '{% url "category-table" %}');
+    request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+    request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+    request.onreadystatechange = function() {
+        if(this.readyState === 4 && this.status === 200) {
+            var obj2 = JSON.parse(this.responseText)
+            var length1 = obj2.result.length
+            for (var i=0; i < length1; i++) {
+
+              const last_up1 = new Date(obj2.result[i].fields.cat_createdon);
+              var lu_date = last_up1.getDate()+'-'+(last_up1.getMonth()+1)+'-'+last_up1.getFullYear()
+              var lu_time = last_up1.getHours() + ":" + last_up1.getMinutes() + ":" + last_up1.getSeconds();
+
+              var row = table.insertRow(0);
+              var cell1 = row.insertCell(0);
+              var cell2 = row.insertCell(1);
+              var cell3 = row.insertCell(2);
+              var cell4 = row.insertCell(3);
+              cell1.innerHTML = `
+              <div class="d-flex px-2 py-1">
+                <div class="d-flex flex-column justify-content-center">
+                  <h6 class="mb-0 text-xs">`+obj2.result[i].fields.cat_name+`</h6>
+                </div>
+              </div>
+                `;
+              cell2.innerHTML = `
+              <p class="text-xs font-weight-bold mb-0">`+obj2.result[i].fields.cat_desc+`</p>
+              </div>
+              </div>
+                `;
+              cell3.innerHTML = `
+              <span class="text-secondary text-xs font-weight-bold">`+lu_date+` - `+lu_time+`</span>
+                `;
+              cell4.innerHTML = `
+              <span class="text-secondary text-xs font-weight-bold">
+                      <a role="button" id=`+obj2.result[i].pk+` data-id=`+obj2.result[i].pk+` onclick='delete_category(this)'><i class="far fa-trash-alt fa-lg"></i></a>
+              </span>
+              `;
+            }
+            // console.log(obj2.result)
+        }
+    };
+    request.send();
+  }
+
+function delete_category(data){
+  var table1 = document.getElementById('category_list');
+  if (confirm("Are you sure you want to Delete this record?") == true) {
+        var id = data.dataset.id
+        var postData1 = "id="+id;
+        var request = new XMLHttpRequest();
+        request.open("POST", '{% url "category-delete" %}');
+        request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        request.setRequestHeader("X-CSRFToken", "{{ csrf_token }}");
+        request.onreadystatechange = function() {
+            if(this.readyState === 4 && this.status === 200) {
+                var obj2 = JSON.parse(this.responseText)
+                var row = document.getElementById(id);
+                // var parent = row.parentElement;
+                // parent.removeChild(row);
+                // console.log(obj2)
+                table1.innerHTML = "";
+                fetchTable()
+            }
+        };
+        request.send(postData1);
+      
+  }
+}
+</script>
+{% endblock javascripts %}

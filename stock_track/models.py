@@ -34,3 +34,32 @@ class Alertsmain(models.Model):
 
     class Meta:
         ordering = ('-al_last_updated', )
+
+class Categorymain(models.Model):
+    cat_name = models.CharField(max_length=50)
+    cat_desc = models.CharField(max_length=255)
+    cat_userid = models.TextField()
+    cat_createdon = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ('-cat_createdon', )
+
+class Journalmain(models.Model):
+    jou_category = models.CharField(max_length=50)
+    jou_exchange = models.CharField(max_length=50)
+    jou_name = models.CharField(max_length=50)
+    jou_buydatetime = models.DateTimeField()
+    jou_buyprice = models.FloatField()
+    jou_buyqty = models.FloatField()
+    jou_selldatetime = models.DateTimeField()
+    jou_sellprice = models.FloatField()
+    jou_sellqty = models.FloatField()
+    jou_pl = models.FloatField()
+    jou_status = models.CharField(max_length=50)
+    jou_note = models.TextField()
+    jou_catid = models.IntegerField()
+    jou_userid = models.IntegerField()
+    jou_createdon = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ('-jou_buydatetime', )

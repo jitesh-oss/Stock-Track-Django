@@ -10,12 +10,13 @@ import json
 from nsepython import *
 from django.utils import timezone
 from .forms import inputForm
-from .models import Stocksmain, Alertsmain
+from .models import Stocksmain, Alertsmain, Categorymain, Journalmain
 from django.utils.timezone import make_aware
 from bs4 import BeautifulSoup
 from bsedata.bse import BSE
 from django.core import serializers
-from .functions import nse_livesearch, nse_getPrice, bse_getPrice, fut_getPrice, bse_livesearch, getAllstocks, getAllstocks_all, updatePrice, stockTrackDashboard, checkStatus, alertDashboard, getAllalerts, updateAlert, getAllalerts_all, checkAlertStatus
+# from .functions import nse_livesearch, nse_getPrice, bse_getPrice, fut_getPrice, bse_livesearch, getAllstocks, getAllstocks_all, updatePrice, stockTrackDashboard, checkStatus, alertDashboard, getAllalerts, updateAlert, getAllalerts_all, checkAlertStatus
+from .functions import *
 
 # All the views for stock_track
 
@@ -282,3 +283,159 @@ def statusAlerts(request):
         checkAlertStatus(val['fields']['al_code'], val['fields']['al_name'], val['fields']['al_exchange_name'], val['fields']['al_type'], val['fields']['al_ltp'], val['fields']['al_condition'], val['fields']['al_triggerprice'], val['fields']['al_note'])
     data = {"status": "Message Sent on Skype"}
     return JsonResponse(data)
+
+# Journal views
+
+@login_required(login_url="/login/")
+def category_journal(request):
+    if request.method == "POST":
+        current_user = request.user
+        now = datetime.datetime.now()
+        aware_datetime = make_aware(now)
+        items = Categorymain(cat_name = request.POST['cat-name'], 
+        cat_desc = request.POST['cat-desc'], cat_userid = current_user.id, 
+        cat_createdon = aware_datetime)
+        
+        if (request.POST['cat-name'] != '' and request.POST['cat-desc'] != ''):
+            context = {'msg': 'Succesfully added '+request.POST['cat-name']+' to category database', 'status': 'success', 'segment': 'Category'}
+            # print(items)
+            items.save()
+        else:
+            context = {'msg': 'Please fill all the fields', 'status': 'error', 'segment': 'Category', 'page' : 'journal / Category'}
+    else:
+        context = {'msg': False, 'status': 'error', 'segment': 'Category', 'page' : 'journal / Category'}
+    
+    html_template = loader.get_template('stocks/category-journal.html')
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
+def category_journal_table(request):
+    if request.method == 'POST':
+        current_user = request.user
+        userid = current_user.id
+        result = getAllcategories(userid)
+        data = {"result": result, "status": "success"}
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'status':'error'})
+
+@login_required(login_url="/login/")
+def categoryDelete(request):
+    if request.method == 'POST':
+        id = request.POST.get('id')
+        result = Categorymain.objects.filter(id=id).delete()
+        # print(result)
+        if (result[0] == 1):
+            return JsonResponse({'status':'success'})
+        else:
+            return JsonResponse({'status':'error'})
+    else:
+        return JsonResponse({'status':'error'})
+
+@login_required(login_url="/login/")
+def journal_input(request):
+    current_user = request.user
+    categories = getAllcategories(current_user.id)
+    if request.method == "POST":
+        now = datetime.datetime.now()
+        aware_datetime = make_aware(now)
+
+        buytime = request.POST['jou-buydate']
+        selltime = request.POST['jou-selldate']
+        error = True
+
+        items = Journalmain(jou_category = request.POST['jou-category'], jou_exchange = request.POST['jou-exchange'],
+        jou_name = request.POST['jou-name'], jou_buydatetime = buytime, jou_buyprice = request.POST['jou-buyprice'],
+        jou_buyqty = request.POST['jou-buyqty'], jou_selldatetime = selltime, jou_sellprice = request.POST['jou-sellprice'],
+        jou_sellqty = request.POST['jou-sellqty'], jou_pl = request.POST['jou-pl'], jou_status = request.POST['jou-status'],
+        jou_note = request.POST['jou-notes'], jou_catid = 0, 
+        jou_userid = current_user.id, jou_createdon = aware_datetime)
+
+        if (request.POST['jou-category'] != '' and request.POST['jou-exchange'] != '' and
+        request.POST['jou-name'] != '' and request.POST['jou-buydate'] != '' and request.POST['jou-status'] != '' and
+        request.POST['jou-buyprice'] != '' and request.POST['jou-buyqty'] != '' and request.POST['jou-selldate'] != '' and
+        request.POST['jou-sellprice'] != '' and request.POST['jou-sellqty'] != ''):
+            error = False
+       
+        if (error == False):
+            context = {'msg': 'Succesfully added '+request.POST['jou-name']+' to journal database', 'status': 'success', 'segment': 'Add entries', 'categories': categories}
+            items.save()
+        else:
+            context = {'msg': 'Please fill all the fields', 'status': 'error', 'segment': 'Add entries', 'page' : 'journal / Category', 'categories': categories}
+    else:
+        context = {'msg': False, 'status': 'error', 'segment': 'Add entries', 'page' : 'journal / Input', 'categories': categories}
+    
+    html_template = loader.get_template('stocks/journal-input.html')
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
+def journal_view_all(request):
+    current_user = request.user
+    userid = current_user.id
+    categories = getAllcategories(userid)
+    if request.method == "POST":
+        category = request.POST['selected-category']
+        if category != '':
+            data_view = getAlljournal(userid, category)
+            context = {'msg': category, 'status': 'success', 'segment': 'View entries', 'data' : data_view, 'page' : 'journal / View', 'categories': categories}
+        else:
+            context = {'msg': 'Please fill all the fields', 'status': 'error', 'segment': 'View entries', 'page' : 'journal / View', 'categories': categories}
+    else:
+        context = {'msg': False, 'status': 'error', 'segment': 'View entries', 'page' : 'journal / View', 'categories': categories}
+    html_template = loader.get_template('stocks/journal-view.html')
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
+def journal_edit_one(request, jou_id):
+    current_user = request.user
+    userid = current_user.id
+    all_entries = getAlljournalwithID(userid, jou_id)
+    # all_entries = Journalmain.objects.filter(jou_userid = userid, id = jou_id)
+    if request.method == "POST":
+        if (request.POST['jou-buydate'] != '' and request.POST['jou-status'] != '' and
+        request.POST['jou-buyprice'] != '' and request.POST['jou-buyqty'] != '' and request.POST['jou-selldate'] != '' and
+        request.POST['jou-sellprice'] != '' and request.POST['jou-sellqty'] != ''):
+            db = Journalmain.objects.get(id = jou_id)
+            db.jou_buydatetime = request.POST['jou-buydate']
+            db.jou_status = request.POST['jou-status']
+            db.jou_buyprice = request.POST['jou-buyprice']
+            db.jou_buyqty = request.POST['jou-buyqty']
+            db.jou_selldatetime = request.POST['jou-selldate']
+            db.jou_sellprice = request.POST['jou-sellprice']
+            db.jou_sellqty = request.POST['jou-sellqty']
+            db.jou_pl = request.POST['jou-pl']
+            db.jou_note = request.POST['jou-notes']
+            db.save()
+
+            context = {'segment': 'View entries', 'data': all_entries, 'page' : 'journal / View / '+str(jou_id), 'msg': 'Succesfully updated data', 'status': 'success'}
+        else:
+            context = {'segment': 'View entries', 'data': all_entries, 'page' : 'journal / View / '+str(jou_id), 'msg': 'Please fill all the fields', 'status': 'error'}
+    else:
+        context = {'segment': 'View entries', 'data': all_entries, 'page' : 'journal / View / '+str(jou_id), 'msg': False, 'status': 'error'}
+    html_template = loader.get_template('stocks/journal-edit-one.html')
+    return HttpResponse(html_template.render(context, request))
+
+@login_required(login_url="/login/")
+def journalDelete(request):
+    if request.method == 'POST':
+        id = request.POST.get('id')
+        result = Journalmain.objects.filter(id=id).delete()
+        # print(result)
+        if (result[0] == 1):
+            return JsonResponse({'status':'success'})
+        else:
+            return JsonResponse({'status':'error'})
+    else:
+        return JsonResponse({'status':'error'})
+
+@login_required(login_url="/login/")
+def journal_view_one(request):
+    if request.method == 'POST':
+        id = request.POST.get('id')
+        current_user = request.user
+        userid = current_user.id
+        result = getAlljournalwithID(userid, id)
+        data = {"result": result, "status": "success"}
+        return JsonResponse(data)
+    else:
+        return JsonResponse({'status':'error'})

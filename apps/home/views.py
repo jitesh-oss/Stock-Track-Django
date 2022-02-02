@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
-from stock_track.functions import stockTrackDashboard
+from stock_track.functions import stockTrackDashboard, alertDashboard
 
 
 @login_required(login_url="/login/")
@@ -14,7 +14,8 @@ def index(request):
     current_user = request.user
     userid = current_user.id
     data_track = stockTrackDashboard(userid)
-    context = {'segment': 'index', 'data': data_track}
+    data_alert = alertDashboard(userid)
+    context = {'segment': 'index', 'data': data_track, 'alert': data_alert}
     html_template = loader.get_template('home/index.html')
     return HttpResponse(html_template.render(context, request))
 

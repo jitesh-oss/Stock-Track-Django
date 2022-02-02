@@ -1,0 +1,173 @@
+{% extends 'layouts/base.html' %}
+
+{% block title %} Add entries {% endblock title %}
+
+<!-- Specific CSS goes HERE -->
+{% block stylesheets %}
+<style>
+  .st-result-card{
+    width: 100%;
+    transition: .5s;
+    box-shadow: 0 8px 8px 0 rgba(0,0,0,0.25);
+    border-radius: 7px;
+    padding: 15px 15px;
+    margin: auto;
+    z-index: 10;
+    /* position: absolute; */
+  }
+  .not-visible{
+    display: none;
+  }
+  a:hover {
+       cursor: pointer;
+       background-color:  #fff9f7 ;
+    }
+</style>
+{% endblock stylesheets %}
+
+{% block content %}
+
+<div class="container-fluid py-4">
+
+  <div class="row my-3">
+    
+    <div class="col-12">
+      <div class="card mb-4">
+        <div class="card-header pb-0">
+          <div class="row">
+            <div class="col-lg-6 col-7">
+              <h6>Insert to Journal</h6>
+              <p class="text-sm">New entry</p>
+            </div>
+          </div>
+        </div>
+        <div class="card-body p-3">
+          <div class="row">
+
+            {% if status == 'success' %}
+                {% if msg %}
+                <div class="alert alert-success text-white" role="alert">
+                  <strong>Success!</strong> {{ msg }}
+                </div>
+                {% endif %}
+              {% endif %}
+
+              {% if status == 'error' %}
+                {% if msg %}
+                <div class="alert alert-danger text-white" role="alert">
+                  <strong>Error!</strong> {{ msg }}
+                </div>
+                {% endif %}
+              {% endif %}
+
+                <form action = "" method = "POST">
+                  {% csrf_token %}
+                  <div class="form-group">
+                    <label for="jou-category">Category</label>
+                    <select class="form-control" name="jou-category" id="jou-category">
+                      <option></option>
+                      {% for i in categories %}
+                        <option>{{ i.fields.cat_name }}</option>
+                      {% endfor %}
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="jou-exchange">Exchange Name</label>
+                    <select class="form-control" name="jou-exchange" id="jou-exchange">
+                      <option></option>
+                      <option>NSE</option>
+                      <option>BSE</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="jou-name">Stock Name</label>
+                    <input type="text" class="form-control" name="jou-name" id="jou-name">
+                  </div>             
+                  <div class="form-group">
+                    <label for="jou-buydate">Buy Datetime</label>
+                    <input type="datetime-local" class="form-control" name="jou-buydate" id="jou-buydate">
+                  </div>
+                  <div class="form-group">
+                    <label for="jou-buyprice">Buy Price</label>
+                    <input type="text" class="form-control" name="jou-buyprice" id="jou-buyprice" step="any">
+                  </div>
+                  <div class="form-group">
+                    <label for="jou-buyqty">Buy Qty</label>
+                    <input type="text" class="form-control" name="jou-buyqty" id="jou-buyqty">
+                  </div>
+                  <div class="form-group">
+                    <label for="jou-selldate">Sell Datetime</label>
+                    <input type="datetime-local" class="form-control" name="jou-selldate" id="jou-selldate">
+                  </div>
+                  <div class="form-group">
+                    <label for="jou-sellprice">Sell Price</label>
+                    <input type="text" class="form-control" name="jou-sellprice" id="jou-sellprice" step="any">
+                  </div>
+                  <div class="form-group">
+                    <label for="jou-sellqty">Sell Qty</label>
+                    <input type="text" class="form-control" name="jou-sellqty" id="jou-sellqty">
+                  </div>
+                  <div class="form-group">
+                    <label for="jou-status">Status</label>
+                    <select class="form-control" name="jou-status" id="jou-status">
+                      <option></option>
+                      <option>OPEN</option>
+                      <option>CLOSE</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="jou-pl">Total</label>
+                    <input type="text" class="form-control" name="jou-pl" id="jou-pl">
+                  </div>
+                  <div class="form-group">
+                    <label for="jou-notes">Notes</label>
+                    <textarea class="form-control" id="jou-notes" name="jou-notes" rows="3"></textarea>
+                  </div>
+                  <button class="btn btn-primary" type="submit" >Submit</button>
+                </form>
+           
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% include "includes/footer.html" %}
+
+</div>
+
+{% endblock content %}
+
+<!-- Specific JS goes HERE --> 
+{% block javascripts %}
+
+<script>
+
+const total_pl = document.getElementById('jou-pl')
+const buy_price = document.getElementById('jou-buyprice')
+const buy_qty = document.getElementById('jou-buyqty')
+const sell_price = document.getElementById('jou-sellprice')
+const sell_qty = document.getElementById('jou-sellqty')
+const jou_status = document.getElementById('jou-status')
+
+total_pl.addEventListener('click', e=>{
+
+if(jou_status.value == "CLOSE"){
+  if(buy_qty.value == sell_qty.value){
+    totalpl = (sell_price.value*sell_qty.value)-(buy_price.value*buy_qty.value)
+    total_pl.value = totalpl
+  }
+  else{
+    alert("BUY SELL QUANTITY MISMATCH, PLEASE FIX!")
+    total_pl.value = 0
+  }
+}
+else{
+  total_pl.value = 0
+}
+
+})
+
+</script>
+
+{% endblock javascripts %}

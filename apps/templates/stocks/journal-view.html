@@ -280,27 +280,43 @@
                     {% for val in data %}
                       <tr id="{{ val.pk }}">
                         <td>
-                          {{ val.fields.buydate }}
-                          at
-                          {{ val.fields.buytime }}
+                          <span class="text-secondary text-xs font-weight-bold">{{ val.fields.buydate }} at {{ val.fields.buytime }}</span>
                         </td>
                         <td>
-                          {{ val.fields.jou_name }}
+                          <div class="d-flex px-2 py-1">
+                            <div class="d-flex flex-column justify-content-center">
+                            <h6 class="mb-0 text-sm">{{ val.fields.jou_name }}</h6>
+                            </div>
+                          </div>
                         </td>
                         <td>
-                          {{ val.fields.jou_buyprice }}
+                          <p class="text-xs font-weight-bold mb-0">{{ val.fields.jou_buyprice }}</p>
                         </td>
                         <td>
-                          {{ val.fields.jou_sellprice }}
+                          <p class="text-xs font-weight-bold mb-0">{{ val.fields.jou_sellprice }}</p>
                         </td>
                         <td>
-                          {{ val.fields.jou_buyqty }}
+                          <p class="text-xs font-weight-bold mb-0">{{ val.fields.jou_buyqty }}</p>
                         </td>
                         <td>
-                          {{ val.fields.jou_status }}
+                          {% if val.fields.jou_status == "CLOSE" %}
+                          <div class="align-middle">
+                            <h6><span class="badge bg-gradient-success text-xxs">{{ val.fields.jou_status }}</span></h6>
+                          </div>
+                          {% else %}
+                          <div class="align-middle">
+                            <h6><span class="badge bg-gradient-danger text-xxs">{{ val.fields.jou_status }}</span></h6>
+                          </div>
+                          {% endif %}
                         </td>
                         <td>
-                          {{ val.fields.jou_pl }}
+                          {% if val.fields.jou_pl > 0 %}
+                          <span class="text-success">{{ val.fields.jou_pl }}</span>
+                          {% elif val.fields.jou_pl < 0 %}
+                          <span class="text-danger">{{ val.fields.jou_pl }}</span>
+                          {% else %}
+                          <span class="text-secondary">{{ val.fields.jou_pl }}</span>
+                          {% endif %}
                         </td>
                         <td>
                           <a role="button" onclick='getData(this)' data-id='{{ val.pk }}' data-bs-toggle="modal" data-bs-target="#view_single"><i class="far fa-eye fa-lg"></i></a> / 
@@ -340,7 +356,7 @@
             <p><mark>Sell Price</mark>: <span id="j-sellprice"></span></p>
             <p><mark>Sell Qty</mark>: <span id="j-sellqty"></span></p>
             <p><mark>Status</mark>: <span id="j-status"></span></p>
-            <p><mark>Total PL</mark>: <span id="j-pl"></span></p>
+            <p id="j-pl"></p>
             <p><mark>Note</mark>: <span id="j-note"></span></p>
             <p><mark>Created On</mark>: <span id="j-created"></span></p>
           </div>
@@ -351,6 +367,96 @@
         </div>
       </div>
     </div>
+
+    {% if r_data %}
+    <div class="row mt-4">
+      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+        <div class="card">
+          <div class="card-body p-3">
+            <div class="row">
+              <div class="col-7">
+                <div class="numbers">
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Total Entries</p>
+                  <h5 class="font-weight-bolder">{{ r_data.total_entries }}</h5>
+                  <!-- <span class="text-success text-sm font-weight-bolder">+ $4,000</span> -->
+                  <!-- <span class="text-sm">more</span> -->
+                </div>
+              </div>
+              <div class="col-5 text-end my-auto">
+                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                  <i class="ni ni-world text-lg opacity-10" aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+        <div class="card">
+          <div class="card-body p-3">
+            <div class="row">
+              <div class="col-7">
+                <div class="numbers">
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">In Profit</p>
+                  <h5 class="font-weight-bolder">{{ r_data.inprofit }}</h5>
+                  <!-- <span class="text-success text-sm font-weight-bolder">+ 5,3%</span> -->
+                </div>
+              </div>
+              <div class="col-5 text-end my-auto">
+                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                  <i class="ni ni-fat-add text-lg opacity-10" aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
+        <div class="card">
+          <div class="card-body p-3">
+            <div class="row">
+              <div class="col-7">
+                <div class="numbers">
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">In Loss</p>
+                  <h5 class="font-weight-bolder">{{ r_data.inloss }}</h5>
+                  <!-- <span class="text-success text-sm font-weight-bolder">+ 94</span> -->
+                  <!-- <span class="text-sm">last week</span> -->
+                </div>
+              </div>
+              <div class="col-5 text-end my-auto">
+                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                  <i class="ni ni-fat-delete text-lg opacity-10" aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-xl-3 col-sm-6">
+        <div class="card">
+          <div class="card-body p-3">
+            <div class="row">
+              <div class="col-7">
+                <div class="numbers">
+                  <p class="text-sm mb-0 text-capitalize font-weight-bold">Total PL</p>
+                  {% if r_data.totalpl > 0 %}
+                  <h5 class="font-weight-bolder text-success">{{ r_data.totalpl }}</h5>
+                  {% else %}
+                  <h5 class="font-weight-bolder text-danger">{{ r_data.totalpl }}</h5>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="col-5 text-end my-auto">
+                <div class="icon icon-shape bg-gradient-primary shadow text-center border-radius-md">
+                  <i class="ni ni-time-alarm text-lg opacity-10" aria-hidden="true"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    {% endif %}
 
       {% include "includes/footer.html" %}
 
@@ -411,7 +517,15 @@ function getData(data){
         document.getElementById('j-sellprice').innerHTML = "Rs. "+data.jou_sellprice
         document.getElementById('j-sellqty').innerHTML = data.jou_sellqty
         document.getElementById('j-status').innerHTML = data.jou_status
-        document.getElementById('j-pl').innerHTML = data.jou_pl
+        if(data.jou_pl > 0){
+          document.getElementById('j-pl').innerHTML = '<mark>Total PL</mark>: <span class="text-success">'+data.jou_pl+'</span>'
+        }
+        else if(data.jou_pl < 0){
+          document.getElementById('j-pl').innerHTML = '<mark>Total PL</mark>: <span class="text-danger">'+data.jou_pl+'</span>'
+        }
+        else{
+          document.getElementById('j-pl').innerHTML = '<mark>Total PL</mark>: <span class="text-secondary">'+data.jou_pl+'</span>'
+        }
         document.getElementById('j-note').innerHTML = data.jou_note
         document.getElementById('j-created').innerHTML = data.createdondate+" | "+data.createdontime
       }

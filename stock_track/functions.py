@@ -261,6 +261,27 @@ def getAlljournal(userid, category):
         val['fields']['selltime'] = selldatetime['time']
     return json_object
 
+def getjournalData(userid, category):
+    JournalmainModel_json = serializers.serialize("json", Journalmain.objects.filter(jou_userid = userid, jou_category = category).order_by('jou_buydatetime'))
+    json_object = json.loads(JournalmainModel_json)
+    total_entries = 0
+    inprofit = 0
+    inloss = 0
+    totalpl = 0
+    rdata = {}
+    for val in json_object:
+        total_entries = total_entries + 1
+        totalpl = totalpl + val['fields']['jou_pl']
+        if(val['fields']['jou_pl'] > 0):
+            inprofit = inprofit + 1
+        if(val['fields']['jou_pl'] < 0):
+            inloss = inloss + 1
+    rdata['total_entries'] = total_entries
+    rdata['inprofit'] = inprofit
+    rdata['inloss'] = inloss
+    rdata['totalpl'] = totalpl
+    return rdata
+
 def getAlljournalwithID(userid, id):
     JournalmainModel_json = serializers.serialize("json", Journalmain.objects.filter(jou_userid = userid, id = id).order_by('jou_buydatetime'))
     json_object = json.loads(JournalmainModel_json)
@@ -305,3 +326,36 @@ def timeconvert(str1):
         return str1[:-2]
     else:
         return str(int(str1[:2]) + 12) + str1[2:8]
+
+def allCategorieswithData(userid):
+    data2 = []
+    data1 = {}
+    totalentries = 0
+    in_profit = 0
+    in_loss = 0
+    total_pl = 0
+    all_cat = Categorymain.objects.filter(cat_userid = userid)
+    for val in all_cat:
+        data1['cat_name'] = val.cat_name
+        data1['cat_createdon'] = val.cat_createdon
+        all_entries = Journalmain.objects.filter(jou_category = val.cat_name, jou_userid = userid)
+        for val1 in all_entries:
+            totalentries = totalentries + 1
+            total_pl = total_pl + val1.jou_pl
+            if(val1.jou_pl > 0):
+                in_profit = in_profit + 1
+            elif(val1.jou_pl < 0):
+                in_loss = in_loss + 1
+        data1['total_entries'] = totalentries
+        data1['in_profit'] = in_profit
+        data1['in_loss'] = in_loss
+        data1['total_pl'] = total_pl
+        # print(data1)
+        data2.append(data1)
+        
+        totalentries = 0
+        in_profit = 0
+        in_loss = 0
+        total_pl = 0
+        data1 = {}
+    return data2

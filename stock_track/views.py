@@ -377,7 +377,8 @@ def journal_view_all(request):
         category = request.POST['selected-category']
         if category != '':
             data_view = getAlljournal(userid, category)
-            context = {'msg': category, 'status': 'success', 'segment': 'View entries', 'data' : data_view, 'page' : 'journal / View', 'categories': categories}
+            r_data = getjournalData(userid, category)
+            context = {'msg': category, 'status': 'success', 'segment': 'View entries', 'data' : data_view, 'r_data': r_data, 'page' : 'journal / View', 'categories': categories}
         else:
             context = {'msg': 'Please fill all the fields', 'status': 'error', 'segment': 'View entries', 'page' : 'journal / View', 'categories': categories}
     else:

@@ -266,6 +266,7 @@
                     <tr>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Buy Date</th>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Name</th>
+                      <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Position</th>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Buy Price</th>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Sell Price</th>
                       <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Qty</th>
@@ -288,6 +289,13 @@
                             <h6 class="mb-0 text-sm">{{ val.fields.jou_name }}</h6>
                             </div>
                           </div>
+                        </td>
+                        <td>
+                          {% if val.fields.jou_position == "SHORT" %}
+                          <span class="text-danger">{{ val.fields.jou_position }}</span>
+                          {% else %}
+                          <span class="text-success">{{ val.fields.jou_position }}</span>
+                          {% endif %}
                         </td>
                         <td>
                           <p class="text-xs font-weight-bold mb-0">{{ val.fields.jou_buyprice }}</p>
@@ -347,6 +355,7 @@
           </div>
           <div class="modal-body">
             <p id="j-fullname"></p>
+            <p id="j-pos"></p>
             <p><mark>Buy Date</mark>: <span id="j-buydate"></span></p>
             <p><mark>Buy Time</mark>: <span id="j-buytime"></span></p>
             <p><mark>Buy Price</mark>: <span id="j-buyprice"></span></p>
@@ -525,6 +534,13 @@ function getData(data){
         }
         else{
           document.getElementById('j-pl').innerHTML = '<mark>Total PL</mark>: <span class="text-secondary">'+data.jou_pl+'</span>'
+        }
+
+        if(data.jou_position == "SHORT"){
+          document.getElementById('j-pos').innerHTML = '<mark>Position</mark>: <span class="text-danger">'+data.jou_position+'</span>'
+        }
+        else{
+          document.getElementById('j-pos').innerHTML = '<mark>Position</mark>: <span class="text-success">'+data.jou_position+'</span>'
         }
         document.getElementById('j-note').innerHTML = data.jou_note
         document.getElementById('j-created').innerHTML = data.createdondate+" | "+data.createdontime

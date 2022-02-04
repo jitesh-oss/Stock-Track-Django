@@ -82,18 +82,26 @@
                   <div class="form-group">
                     <label for="jou-name">Stock Name</label>
                     <input type="text" class="form-control" name="jou-name" id="jou-name">
-                  </div>             
+                  </div>     
+                  <div class="form-group">
+                    <label for="jou-position">Position</label>
+                    <select class="form-control" name="jou-position" id="jou-position">
+                      <option></option>
+                      <option>LONG</option>
+                      <option>SHORT</option>
+                    </select>
+                  </div>    
                   <div class="form-group">
                     <label for="jou-buydate">Buy Datetime</label>
                     <input type="datetime-local" class="form-control" name="jou-buydate" id="jou-buydate">
                   </div>
                   <div class="form-group">
                     <label for="jou-buyprice">Buy Price</label>
-                    <input type="text" class="form-control" name="jou-buyprice" id="jou-buyprice" step="any">
+                    <input type="text" class="form-control" name="jou-buyprice" id="jou-buyprice" step="any" value="0">
                   </div>
                   <div class="form-group">
                     <label for="jou-buyqty">Buy Qty</label>
-                    <input type="text" class="form-control" name="jou-buyqty" id="jou-buyqty">
+                    <input type="text" class="form-control" name="jou-buyqty" id="jou-buyqty" value="0">
                   </div>
                   <div class="form-group">
                     <label for="jou-selldate">Sell Datetime</label>
@@ -101,11 +109,11 @@
                   </div>
                   <div class="form-group">
                     <label for="jou-sellprice">Sell Price</label>
-                    <input type="text" class="form-control" name="jou-sellprice" id="jou-sellprice" step="any">
+                    <input type="text" class="form-control" name="jou-sellprice" id="jou-sellprice" step="any" value="0">
                   </div>
                   <div class="form-group">
                     <label for="jou-sellqty">Sell Qty</label>
-                    <input type="text" class="form-control" name="jou-sellqty" id="jou-sellqty">
+                    <input type="text" class="form-control" name="jou-sellqty" id="jou-sellqty" value="0">
                   </div>
                   <div class="form-group">
                     <label for="jou-status">Status</label>

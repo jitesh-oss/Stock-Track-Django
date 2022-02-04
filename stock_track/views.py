@@ -28,9 +28,14 @@ def stock_input(request):
         now = datetime.datetime.now()
         aware_datetime = make_aware(now)
 
-        items = Stocksmain(exchange_name = request.POST['exchange-name'], st_type =  request.POST['stock-type'],st_name = request.POST['stock-name'], st_code = request.POST['stock-code'], st_buyprice = request.POST['buy-price'], st_targetprice = request.POST['target-price'], st_stoploss = request.POST['stoploss-price'], st_ltp = request.POST['lt-price'], bought_on = request.POST['date'], user_id = current_user.id, last_updated = aware_datetime)
+        items = Stocksmain(exchange_name = request.POST['exchange-name'], st_type =  request.POST['stock-type'],
+        st_name = request.POST['stock-name'], st_code = request.POST['stock-code'], st_buyprice = request.POST['buy-price'], 
+        st_targetprice = request.POST['target-price'], st_stoploss = request.POST['stoploss-price'], st_ltp = request.POST['lt-price'], 
+        bought_on = request.POST['date'], user_id = current_user.id, last_updated = aware_datetime, st_position = request.POST['stock-position'])
 
-        if (request.POST['exchange-name'] != '' and request.POST['stock-type'] != '' and request.POST['stock-name'] != '' and request.POST['stock-code'] != '' and  request.POST['buy-price'] != '' and request.POST['target-price'] != '' and request.POST['stoploss-price'] != '' and request.POST['lt-price'] != '' and request.POST['date'] != ''):
+        if (request.POST['exchange-name'] != '' and request.POST['stock-type'] != '' and request.POST['stock-name'] != '' and 
+        request.POST['stock-code'] != '' and  request.POST['buy-price'] != '' and request.POST['target-price'] != '' and 
+        request.POST['stoploss-price'] != '' and request.POST['lt-price'] != '' and request.POST['date'] != '' and request.POST['stock-position'] != ''):
             context = {'msg': 'Succesfully added '+request.POST['stock-name']+' to database', 'status': 'success', 'segment': 'Add items'}
             # print(items)
             items.save()
@@ -340,21 +345,28 @@ def journal_input(request):
         now = datetime.datetime.now()
         aware_datetime = make_aware(now)
 
-        buytime = request.POST['jou-buydate']
-        selltime = request.POST['jou-selldate']
+        if (request.POST['jou-buydate'] == ""):
+            buytime = "1940-01-01T12:00"
+        else:
+            buytime = request.POST['jou-buydate']
+
+        if(request.POST['jou-selldate'] == ""):
+            selltime = "1940-01-01T12:00"
+        
+        else:
+            selltime = request.POST['jou-selldate']
+        
         error = True
 
         items = Journalmain(jou_category = request.POST['jou-category'], jou_exchange = request.POST['jou-exchange'],
         jou_name = request.POST['jou-name'], jou_buydatetime = buytime, jou_buyprice = request.POST['jou-buyprice'],
         jou_buyqty = request.POST['jou-buyqty'], jou_selldatetime = selltime, jou_sellprice = request.POST['jou-sellprice'],
         jou_sellqty = request.POST['jou-sellqty'], jou_pl = request.POST['jou-pl'], jou_status = request.POST['jou-status'],
-        jou_note = request.POST['jou-notes'], jou_catid = 0, 
+        jou_note = request.POST['jou-notes'], jou_catid = 0, jou_position = request.POST['jou-position'],
         jou_userid = current_user.id, jou_createdon = aware_datetime)
 
         if (request.POST['jou-category'] != '' and request.POST['jou-exchange'] != '' and
-        request.POST['jou-name'] != '' and request.POST['jou-buydate'] != '' and request.POST['jou-status'] != '' and
-        request.POST['jou-buyprice'] != '' and request.POST['jou-buyqty'] != '' and request.POST['jou-selldate'] != '' and
-        request.POST['jou-sellprice'] != '' and request.POST['jou-sellqty'] != ''):
+        request.POST['jou-name'] != '' and request.POST['jou-position'] != '' and request.POST['jou-status'] != ''):
             error = False
        
         if (error == False):

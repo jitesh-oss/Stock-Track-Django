@@ -37,6 +37,7 @@
             <tr>
               <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Exchange</th>
               <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Name</th>
+              <th class="text-uppercase text-secondary text-xxs font-weight-bolder opacity-7 ps-2">Position</th>
               <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Bought on</th>
               <th class="text-center text-uppercase text-secondary text-xxs font-weight-bolder opacity-7">Last Updated</th>
               <th class="text-secondary opacity-7"></th>
@@ -58,6 +59,13 @@
                 <td>
                   <p class="text-xs font-weight-bold mb-0">{{ val.st_name }}</p>
                   <p class="text-xs text-secondary mb-0">{{ val.st_code }}</p>
+                </td>
+                <td>
+                  {% if val.st_position == "SHORT" %}
+                  <p class="text-xs font-weight-bold mb-0 text-danger">{{ val.st_position }}</p>
+                  {% else %}
+                  <p class="text-xs font-weight-bold mb-0 text-success">{{ val.st_position }}</p>
+                  {% endif %}
                 </td>
                 <td class="align-middle text-center">
                   <span class="text-secondary text-xs font-weight-bold">{{ val.bought_on }}</span>
@@ -103,8 +111,9 @@
           </div>
           <div class="modal-body">
             <p>{{ val1.st_code }} ({{ val1.exchange_name }}) - ({{ val1.st_type }})</p>
+            <p><mark>Position</mark>: {{ val1.st_position }}</p>
             <p><mark>Last Traded Price</mark>: {{ val1.st_ltp }}</p>
-            <p><mark>Buy Price</mark>: {{ val1.st_buyprice }}</p>
+            <p><mark>Buy/Sell Price</mark>: {{ val1.st_buyprice }}</p>
             <p><mark>StopLoss Price</mark>: {{ val1.st_stoploss }}</p>
             <p><mark>Target Price</mark>: {{ val1.st_targetprice }}</p>
             <p><mark>Bought On</mark>: {{ val1.bought_on }}</p>

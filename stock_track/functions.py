@@ -155,15 +155,26 @@ def stockTrackDashboard(userid):
     lossStock = 0
     attentionStock = 0
     for val in all_entries:
-        if val.st_ltp > val.st_buyprice:
-            profitStock += 1
-        if val.st_ltp < val.st_buyprice:
-            lossStock += 1
-        if val.st_ltp <= val.st_stoploss:
-            attentionStock += 1
-        if val.st_ltp >= val.st_targetprice:
-            attentionStock += 1
-        totalStock += 1
+        if val.st_position == "SHORT":
+            if val.st_ltp < val.st_buyprice:
+                profitStock += 1
+            if val.st_ltp > val.st_buyprice:
+                lossStock += 1
+            if val.st_ltp >= val.st_stoploss:
+                attentionStock += 1
+            if val.st_ltp <= val.st_targetprice:
+                attentionStock += 1
+            totalStock += 1
+        else:
+            if val.st_ltp > val.st_buyprice:
+                profitStock += 1
+            if val.st_ltp < val.st_buyprice:
+                lossStock += 1
+            if val.st_ltp <= val.st_stoploss:
+                attentionStock += 1
+            if val.st_ltp >= val.st_targetprice:
+                attentionStock += 1
+            totalStock += 1
     data_view = {}
     data_view['total'] = totalStock
     data_view['profit'] = profitStock

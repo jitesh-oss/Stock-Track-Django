@@ -350,11 +350,21 @@
               var lu_time = last_up1.getHours() + ":" + last_up1.getMinutes() + ":" + last_up1.getSeconds();
               const bought_on1 = new Date(obj2.result[i].fields.bought_on);
 
-              position = findPositionStatus(obj2.result[i].fields.st_ltp, obj2.result[i].fields.st_buyprice, obj2.result[i].fields.st_stoploss, obj2.result[i].fields.st_targetprice)
+              position = findPositionStatus(obj2.result[i].fields.st_ltp, obj2.result[i].fields.st_buyprice, 
+              obj2.result[i].fields.st_stoploss, obj2.result[i].fields.st_targetprice, obj2.result[i].fields.st_position)
               var proloss = position.prolos
               var proloss_css = position.prolos_css
 
-              var final_range = findRange(obj2.result[i].fields.st_ltp, obj2.result[i].fields.st_buyprice, obj2.result[i].fields.st_stoploss, obj2.result[i].fields.st_targetprice)
+              var final_range = findRange(obj2.result[i].fields.st_ltp, obj2.result[i].fields.st_buyprice, 
+              obj2.result[i].fields.st_stoploss, obj2.result[i].fields.st_targetprice, obj2.result[i].fields.st_position)
+
+              var stposition = ""
+              if(obj2.result[i].fields.st_position == "SHORT"){
+                stposition = `<span class="text-xs text-danger">Short</span>`
+              }
+              else{
+                stposition = `<span class="text-xs text-success">Long</span>`
+              }
 
               var row = table.insertRow(0);
               var cell1 = row.insertCell(0);
@@ -363,7 +373,7 @@
               cell1.innerHTML = `
                 <div class="d-flex px-2 py-1">
                 <div class="d-flex flex-column justify-content-center">
-                <h6 class="mb-0 text-sm">`+obj2.result[i].fields.st_name+`</h6>
+                <h6 class="mb-0 text-sm">`+obj2.result[i].fields.st_name+` - `+stposition+`</h6>
                 <div>`+obj2.result[i].fields.st_code+` (`+obj2.result[i].fields.exchange_name+`) - (`+obj2.result[i].fields.st_type+`)</div>
                 <span class="text-xs font-weight-bold"> `+bought_on1.toDateString()+` </span>
                 </div>
@@ -393,50 +403,98 @@
     request.send();
   }
 
-  function findPositionStatus(ltp, buy, stoploss, target){
+  function findPositionStatus(ltp, buy, stoploss, target, position){
     var prolos = ''
-    if(ltp > buy){
-      if(ltp >= target){
-        prolos = 'Target Hit'
-        prolos_css = 'bg-gradient-success'
+    if (position == "SHORT"){
+      if(ltp < buy){
+        if(ltp <= target){
+          prolos = 'Target Hit'
+          prolos_css = 'bg-gradient-success'
+        }
+        else{
+          prolos = 'Profit'
+          prolos_css = 'bg-gradient-success'
+        }
+      }
+      else if(ltp > buy){
+        if(ltp >= stoploss){
+          prolos = 'StopLoss Hit'
+          prolos_css = 'bg-gradient-danger'
+        }
+        else{
+          prolos = 'Loss'
+          prolos_css = 'bg-gradient-danger'
+        }
       }
       else{
-        prolos = 'Profit'
-        prolos_css = 'bg-gradient-success'
+        prolos = 'Neutral'
+        prolos_css = 'bg-gradient-primary'
       }
-    }
-    else if(ltp < buy){
-      if(ltp <= stoploss){
-        prolos = 'StopLoss Hit'
-        prolos_css = 'bg-gradient-danger'
-      }
-      else{
-        prolos = 'Loss'
-        prolos_css = 'bg-gradient-danger'
-      }
+      return {'prolos':prolos, 'prolos_css':prolos_css}
     }
     else{
-      prolos = 'Neutral'
-      prolos_css = 'bg-gradient-primary'
+      if(ltp > buy){
+        if(ltp >= target){
+          prolos = 'Target Hit'
+          prolos_css = 'bg-gradient-success'
+        }
+        else{
+          prolos = 'Profit'
+          prolos_css = 'bg-gradient-success'
+        }
+      }
+      else if(ltp < buy){
+        if(ltp <= stoploss){
+          prolos = 'StopLoss Hit'
+          prolos_css = 'bg-gradient-danger'
+        }
+        else{
+          prolos = 'Loss'
+          prolos_css = 'bg-gradient-danger'
+        }
+      }
+      else{
+        prolos = 'Neutral'
+        prolos_css = 'bg-gradient-primary'
+      }
+      return {'prolos':prolos, 'prolos_css':prolos_css}
     }
-    return {'prolos':prolos, 'prolos_css':prolos_css}
+    
   }
 
-  function findRange(ltp, buy, stoploss, target){
-    if(ltp > buy){
+  function findRange(ltp, buy, stoploss, target, position){
+    if(position == 'SHORT'){
+      if(ltp < buy){
+      var bigN1 = buy - target
+      var smallN1 = buy - ltp
+      final_range1 = 100 + ((smallN1*100)/bigN1)
+      }
+      else if(ltp > buy){
+        var bigN = stoploss - buy
+        var smallN = ltp - buy
+        final_range1 = 100 - ((smallN*100)/bigN)
+      }
+      else if(ltp == buy){
+        final_range1 = 100
+      }
+      return final_range1
+    }
+    else{
+      if(ltp > buy){
       var bigN1 = target - buy
       var smallN1 = ltp - buy
       final_range1 = 100 + ((smallN1*100)/bigN1)
+      }
+      else if(ltp < buy){
+        var bigN = buy - stoploss
+        var smallN = buy - ltp
+        final_range1 = 100 - ((smallN*100)/bigN)
+      }
+      else if(ltp == buy){
+        final_range1 = 100
+      }
+      return final_range1
     }
-    else if(ltp < buy){
-      var bigN = buy - stoploss
-      var smallN = buy - ltp
-      final_range1 = 100 - ((smallN*100)/bigN)
-    }
-    else if(ltp == buy){
-      final_range1 = 100
-    }
-    return final_range1
   }
 
   function refreshPrice(){

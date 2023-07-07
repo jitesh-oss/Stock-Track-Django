@@ -1,5 +1,5 @@
 
-# Stock Track
+# Stock Track using Django
 
 Add, Edit and View Equity Stocks from NSE and BSE to monitor their current position with respect to latest price.
 
